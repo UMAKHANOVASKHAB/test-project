@@ -7,11 +7,12 @@ import { ordersRouter } from './routes/orders.js'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-const token = process.env.BOT_TOKEN
+// trim: при вставке с телефона токен часто прилетает с пробелом или переносом строки
+const token = process.env.BOT_TOKEN?.trim()
 if (!token) throw new Error('BOT_TOKEN не задан (apps/api/.env)')
 
 const db = openDb()
-const { bot, notifyOrder, notifyGuest } = createBot(token, db, process.env.WEBAPP_URL ?? '')
+const { bot, notifyOrder, notifyGuest } = createBot(token, db, (process.env.WEBAPP_URL ?? '').trim())
 
 const app = express()
 app.use(cors())
@@ -29,7 +30,10 @@ if (existsSync(webDist)) {
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, () => console.log(`API на http://localhost:${port}`))
 
-bot.start({ onStart: (me) => console.log(`Бот @${me.username} запущен`) })
+// Ошибка бота (неверный токен, второй запуск) не должна ронять сайт мини-аппа
+bot
+  .start({ onStart: (me) => console.log(`Бот @${me.username} запущен`) })
+  .catch((e) => console.error('Бот не запустился. Проверьте BOT_TOKEN в переменных:', e?.description ?? e))
 
 process.on('SIGINT', () => { bot.stop(); db.close(); process.exit(0) })
 process.on('SIGTERM', () => { bot.stop(); db.close(); process.exit(0) })
