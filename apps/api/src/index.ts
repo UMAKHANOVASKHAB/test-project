@@ -7,8 +7,9 @@ import { ordersRouter } from './routes/orders.js'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-// trim: при вставке с телефона токен часто прилетает с пробелом или переносом строки
-const token = process.env.BOT_TOKEN?.trim()
+// С телефона токен часто вставляют вместе с текстом BotFather: вытаскиваем сам токен
+const rawToken = process.env.BOT_TOKEN ?? ''
+const token = rawToken.match(/\d{6,}:[A-Za-z0-9_-]{30,}/)?.[0] ?? rawToken.trim()
 // Railway сам сообщает свой адрес, поэтому WEBAPP_URL можно не задавать
 const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN
 const webappUrl = (process.env.WEBAPP_URL ?? '').trim() || (railwayDomain ? `https://${railwayDomain}` : '')
