@@ -25,4 +25,4 @@
 - [x] T10. `apps/api`: Express + SQLite, `GET /api/menu`, `POST /api/orders`, `GET /api/loyalty/:tgId`.
 - [x] T11. Бот grammy: `/start` с кнопкой мини-аппа, отправка заказа в чат кофейни.
 - [x] T12. Переключить фронт на `remoteApi` (тот же адрес).
-- [ ] T13. Деплой одним контейнером (Dockerfile) на Render/Railway (Dockerfile готов для Railway: без VOLUME), WEBAPP_URL в .env, кнопка «Меню» в боте.
+- [x] T13. Деплой одним контейнером на Railway: ninebar-coffee-production-4d6a.up.railway.app, бот @ninebar_coffee_05bot, кнопка «Меню» работает.
