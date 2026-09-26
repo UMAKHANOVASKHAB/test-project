@@ -3,119 +3,994 @@
     "name": "9 bar coffee",
     "address": "Махачкала, ул. Леваневского, 11",
     "currency": "₽",
-    "loyalty": { "stampsForFree": 6, "countsCategories": ["coffee-classic", "coffee-milk", "coffee-raf", "matcha", "cacao", "coffee-cold"] },
-    "hours": { "open": "08:00", "close": "23:00" },
-    "pickupStepMin": 15
+    "loyalty": {
+      "stampsForFree": 6,
+      "countsCategories": [
+        "coffee-classic",
+        "coffee-milk",
+        "coffee-raf",
+        "matcha",
+        "cacao",
+        "coffee-cold"
+      ]
+    },
+    "hours": {
+      "open": "08:00",
+      "close": "23:00"
+    },
+    "pickupStepMin": 15,
+    "phone": "+7 965 490-09-99"
   },
   "categories": [
-    { "id": "coffee-classic", "title": "Классический кофе", "emoji": "☕️" },
-    { "id": "coffee-milk", "title": "Кофе с молоком", "emoji": "🥛" },
-    { "id": "coffee-raf", "title": "Сливочный кофе", "emoji": "🍮" },
-    { "id": "matcha", "title": "Матча", "emoji": "🍵" },
-    { "id": "cacao", "title": "Какао", "emoji": "🍫" },
-    { "id": "coffee-cold", "title": "Холодный кофе", "emoji": "🧊" },
-    { "id": "tea", "title": "Чай", "emoji": "🫖" },
-    { "id": "warm", "title": "Согревающие напитки", "emoji": "🔥" },
-    { "id": "fresh", "title": "Фреш", "emoji": "🍊" },
-    { "id": "shakes", "title": "Молочные коктейли", "emoji": "🥤" },
-    { "id": "lemonade", "title": "Лимонады", "emoji": "🍋" },
-    { "id": "breakfast", "title": "Завтраки", "emoji": "🍳" },
-    { "id": "ciabatta", "title": "Чиабатта", "emoji": "🥪" },
-    { "id": "bowls", "title": "Боулы", "emoji": "🥗" },
-    { "id": "salads", "title": "Салаты", "emoji": "🥬" },
-    { "id": "porridge", "title": "Каши", "emoji": "🥣" }
+    {
+      "id": "coffee-classic",
+      "title": "Классический кофе",
+      "emoji": "☕️"
+    },
+    {
+      "id": "coffee-milk",
+      "title": "Кофе с молоком",
+      "emoji": "🥛"
+    },
+    {
+      "id": "coffee-raf",
+      "title": "Сливочный кофе",
+      "emoji": "🍮"
+    },
+    {
+      "id": "matcha",
+      "title": "Матча",
+      "emoji": "🍵"
+    },
+    {
+      "id": "cacao",
+      "title": "Какао",
+      "emoji": "🍫"
+    },
+    {
+      "id": "coffee-cold",
+      "title": "Холодный кофе",
+      "emoji": "🧊"
+    },
+    {
+      "id": "tea",
+      "title": "Чай",
+      "emoji": "🫖"
+    },
+    {
+      "id": "warm",
+      "title": "Согревающие напитки",
+      "emoji": "🔥"
+    },
+    {
+      "id": "fresh",
+      "title": "Фреш",
+      "emoji": "🍊"
+    },
+    {
+      "id": "shakes",
+      "title": "Молочные коктейли",
+      "emoji": "🥤"
+    },
+    {
+      "id": "lemonade",
+      "title": "Лимонады",
+      "emoji": "🍋"
+    },
+    {
+      "id": "breakfast",
+      "title": "Завтраки",
+      "emoji": "🍳"
+    },
+    {
+      "id": "ciabatta",
+      "title": "Чиабатта",
+      "emoji": "🥪"
+    },
+    {
+      "id": "bowls",
+      "title": "Боулы",
+      "emoji": "🥗"
+    },
+    {
+      "id": "salads",
+      "title": "Салаты",
+      "emoji": "🥬"
+    },
+    {
+      "id": "porridge",
+      "title": "Каши",
+      "emoji": "🥣"
+    }
   ],
   "addons": [
-    { "id": "syrup", "title": "Сироп", "price": 40, "forCategories": ["coffee-milk", "coffee-raf", "coffee-classic", "matcha", "cacao", "coffee-cold"] },
-    { "id": "alt-milk", "title": "Альтернативное молоко", "price": 80, "forCategories": ["coffee-milk", "coffee-raf", "matcha", "cacao", "coffee-cold"] },
-    { "id": "tea-extra", "title": "Добавка к чаю", "price": 30, "forCategories": ["tea"] }
+    {
+      "id": "syrup",
+      "title": "Сироп",
+      "price": 40,
+      "forCategories": [
+        "coffee-milk",
+        "coffee-raf",
+        "coffee-classic",
+        "matcha",
+        "cacao",
+        "coffee-cold"
+      ]
+    },
+    {
+      "id": "alt-milk",
+      "title": "Альтернативное молоко",
+      "price": 80,
+      "forCategories": [
+        "coffee-milk",
+        "coffee-raf",
+        "matcha",
+        "cacao",
+        "coffee-cold"
+      ]
+    },
+    {
+      "id": "tea-extra",
+      "title": "Добавка к чаю",
+      "price": 30,
+      "forCategories": [
+        "tea"
+      ]
+    }
   ],
   "items": [
-    { "id": "espresso", "category": "coffee-classic", "title": "Эспрессо", "variants": [{ "label": "40 мл", "price": 180 }] },
-    { "id": "americano", "category": "coffee-classic", "title": "Американо", "variants": [{ "label": "200 мл", "price": 180 }] },
-    { "id": "filter", "category": "coffee-classic", "title": "Фильтр-кофе", "variants": [{ "label": "200 мл", "price": 150 }, { "label": "300 мл", "price": 200 }] },
-    { "id": "filter-pomegranate", "category": "coffee-classic", "title": "Фильтр гранатовый", "variants": [{ "label": "200 мл", "price": 200 }, { "label": "300 мл", "price": 270 }] },
-    { "id": "v60", "category": "coffee-classic", "title": "Воронка", "variants": [{ "label": "250 мл", "price": 300 }] },
-
-    { "id": "cappuccino", "category": "coffee-milk", "title": "Капучино", "variants": [{ "label": "200 мл", "price": 200 }, { "label": "300 мл", "price": 250 }] },
-    { "id": "flat-white", "category": "coffee-milk", "title": "Флэт уайт", "variants": [{ "label": "200 мл", "price": 250 }] },
-    { "id": "latte", "category": "coffee-milk", "title": "Латте", "variants": [{ "label": "300 мл", "price": 270 }] },
-    { "id": "cheese-latte", "category": "coffee-milk", "title": "Сырный латте с карамелью", "hit": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-
-    { "id": "raf-classic", "category": "coffee-raf", "title": "Раф классический", "variants": [{ "label": "300 мл", "price": 250 }] },
-    { "id": "raf-peanut", "category": "coffee-raf", "title": "Раф арахисовый", "variants": [{ "label": "300 мл", "price": 330 }] },
-    { "id": "raf-pistachio", "category": "coffee-raf", "title": "Раф фисташка", "variants": [{ "label": "300 мл", "price": 400 }] },
-    { "id": "raf-urbech", "category": "coffee-raf", "title": "Раф с урбечем", "variants": [{ "label": "300 мл", "price": 330 }] },
-    { "id": "raf-caramel", "category": "coffee-raf", "title": "Раф домашняя карамель", "variants": [{ "label": "300 мл", "price": 330 }] },
-
-    { "id": "matcha-latte", "category": "matcha", "title": "Матча латте", "variants": [{ "label": "300 мл", "price": 280 }] },
-    { "id": "matcha-tonic", "category": "matcha", "title": "Матча тоник", "cold": true, "variants": [{ "label": "300 мл", "price": 280 }] },
-    { "id": "matcha-raspberry", "category": "matcha", "title": "Матча с малиной", "hit": true, "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "matcha-shot", "category": "matcha", "title": "Матча шот", "hit": true, "variants": [{ "label": "80 мл", "price": 250 }] },
-    { "id": "matcha-orange", "category": "matcha", "title": "Апельсиновая матча", "cold": true, "variants": [{ "label": "300 мл", "price": 370 }] },
-    { "id": "matcha-cheese-icecream", "category": "matcha", "title": "Матча / сыр / мороженое", "variants": [{ "label": "300 мл", "price": 350 }] },
-
-    { "id": "cacao-cheese", "category": "cacao", "title": "Какао с сырной пенкой", "variants": [{ "label": "250 мл", "price": 320 }] },
-    { "id": "cacao-classic", "category": "cacao", "title": "Классический какао", "variants": [{ "label": "200 мл", "price": 180 }, { "label": "300 мл", "price": 220 }] },
-    { "id": "cacao-peanut", "category": "cacao", "title": "Арахисовый какао", "variants": [{ "label": "300 мл", "price": 300 }] },
-    { "id": "cacao-ice-cheese", "category": "cacao", "title": "Айс какао с сырной пенкой", "hit": true, "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-
-    { "id": "coldbrew-cola", "category": "coffee-cold", "title": "Колд брю кола", "cold": true, "variants": [{ "label": "300 мл", "price": 250 }] },
-    { "id": "coldbrew-pomegranate", "category": "coffee-cold", "title": "Колд брю гранат", "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "bumble", "category": "coffee-cold", "title": "Бамбл", "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "honey-tonic", "category": "coffee-cold", "title": "Медовый тоник", "hit": true, "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "pomegranate-tonic", "category": "coffee-cold", "title": "Гранатовый тоник", "hit": true, "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "kagor-tonic", "category": "coffee-cold", "title": "Кагор тоник", "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-    { "id": "espresso-tonic", "category": "coffee-cold", "title": "Эспрессо тоник", "cold": true, "variants": [{ "label": "350 мл", "price": 250 }] },
-    { "id": "ice-latte", "category": "coffee-cold", "title": "Айс латте", "cold": true, "variants": [{ "label": "300 мл", "price": 240 }] },
-    { "id": "ice-coffee", "category": "coffee-cold", "title": "Айс кофе", "cold": true, "variants": [{ "label": "300 мл", "price": 300 }] },
-    { "id": "ice-urbech", "category": "coffee-cold", "title": "Айс урбеч", "cold": true, "variants": [{ "label": "300 мл", "price": 350 }] },
-
-    { "id": "tea-assam", "category": "tea", "title": "Ассам", "variants": [{ "label": "800 мл", "price": 200 }] },
-    { "id": "tea-jasmine", "category": "tea", "title": "Зелёный с жасмином", "variants": [{ "label": "800 мл", "price": 200 }] },
-    { "id": "tea-herbs", "category": "tea", "title": "Сбор трав", "variants": [{ "label": "800 мл", "price": 200 }] },
-    { "id": "tea-milk-oolong", "category": "tea", "title": "Молочный улун", "variants": [{ "label": "800 мл", "price": 250 }] },
-    { "id": "tea-fruit", "category": "tea", "title": "Наглый фрукт", "variants": [{ "label": "800 мл", "price": 200 }] },
-    { "id": "tea-shu-puer", "category": "tea", "title": "Шу пуэр", "variants": [{ "label": "800 мл", "price": 330 }] },
-    { "id": "tea-da-hong-pao", "category": "tea", "title": "Да Хун Пао", "variants": [{ "label": "800 мл", "price": 330 }] },
-
-    { "id": "warm-seabuckthorn", "category": "warm", "title": "Облепиховый чай", "hit": true, "variants": [{ "label": "300 мл", "price": 300 }] },
-    { "id": "warm-gluhwein-tea", "category": "warm", "title": "Чай глинтвейн", "variants": [{ "label": "300 мл", "price": 250 }] },
-    { "id": "warm-raspberry-ginger", "category": "warm", "title": "Малина-имбирь", "variants": [{ "label": "300 мл", "price": 250 }] },
-    { "id": "warm-berry-punch", "category": "warm", "title": "Ягодный пунш", "variants": [{ "label": "300 мл", "price": 300 }] },
-
-    { "id": "fresh-orange", "category": "fresh", "title": "Апельсиновый фреш", "variants": [{ "label": "200 мл", "price": 250 }, { "label": "300 мл", "price": 300 }] },
-    { "id": "fresh-apple", "category": "fresh", "title": "Яблочный фреш", "variants": [{ "label": "200 мл", "price": 250 }, { "label": "300 мл", "price": 300 }] },
-    { "id": "fresh-carrot", "category": "fresh", "title": "Морковный фреш", "variants": [{ "label": "200 мл", "price": 250 }, { "label": "300 мл", "price": 300 }] },
-    { "id": "fresh-pomegranate", "category": "fresh", "title": "Гранатовый фреш", "variants": [{ "label": "200 мл", "price": 300 }, { "label": "300 мл", "price": 400 }] },
-
-    { "id": "shake-banana", "category": "shakes", "title": "Банановый", "variants": [{ "label": "300 мл", "price": 250 }] },
-    { "id": "shake-snickers", "category": "shakes", "title": "Сникерс", "variants": [{ "label": "300 мл", "price": 300 }] },
-    { "id": "shake-currant-raspberry", "category": "shakes", "title": "Смородина-малина", "variants": [{ "label": "300 мл", "price": 280 }] },
-    { "id": "shake-strawberry", "category": "shakes", "title": "Клубничный", "variants": [{ "label": "300 мл", "price": 280 }] },
-    { "id": "shake-protein", "category": "shakes", "title": "Протеиновый", "variants": [{ "label": "300 мл", "price": 330 }] },
-
-    { "id": "lemonade-honey", "category": "lemonade", "title": "Медовый лимонад", "variants": [{ "label": "300 мл", "price": 300 }] },
-    { "id": "lemonade-cherry", "category": "lemonade", "title": "Вишнёвый лимонад", "variants": [{ "label": "300 мл", "price": 250 }] },
-
-    { "id": "bf-nature", "category": "breakfast", "title": "Как на природе", "desc": "Тушёное мясо, куриное яйцо, помидоры, микс зелени, хлеб тартин", "variants": [{ "label": "", "price": 590 }] },
-    { "id": "bf-spinach-omelet", "category": "breakfast", "title": "Шпинатный омлет с креветками", "desc": "Куриные яйца, креветки, молодой шпинат, помидоры черри, маринованные опята, микс салата", "variants": [{ "label": "", "price": 530 }] },
-    { "id": "bf-benedict", "category": "breakfast", "title": "Бенедикт с лососем", "desc": "Бриошь, яйцо пашот, лосось с/с, авокадо, молодой шпинат, соус сливочно-икорный", "variants": [{ "label": "", "price": 640 }] },
-    { "id": "bf-bavarian", "category": "breakfast", "title": "Баварский", "desc": "Куриные яйца, сосиски, микс салата, помидоры черри, огурец, соус «Цезарь», оливковое масло, хлеб тартин", "variants": [{ "label": "", "price": 490 }] },
-    { "id": "bf-syrniki", "category": "breakfast", "title": "Сырники", "desc": "Сырники, крем из варёной сгущёнки, ягодное кули, орехи, карамель", "variants": [{ "label": "", "price": 490 }] },
-
-    { "id": "ciabatta-turkey", "category": "ciabatta", "title": "Чиабатта с индейкой", "desc": "Индейка копчёная, салат романо, огурец, помидор, сыр чеддер, соус тар-тар", "variants": [{ "label": "", "price": 300 }] },
-    { "id": "ciabatta-salmon", "category": "ciabatta", "title": "Чиабатта с лососем", "desc": "Лосось с/с, гуакамоле, соус крем-чиз, салат романо, огурец", "variants": [{ "label": "", "price": 370 }] },
-
-    { "id": "bowl-salmon", "category": "bowls", "title": "Боул с сёмгой", "desc": "Рис басмати, лосось с/с, авокадо, огурец, помидоры черри, микс салата, кукуруза, соус «Цезарь»", "variants": [{ "label": "", "price": 520 }] },
-    { "id": "bowl-chicken-shrimp", "category": "bowls", "title": "Боул с курицей / креветками", "desc": "Пикантный рис, яйцо, соус спайси, кукуруза, помидоры черри, шпинат", "variants": [{ "label": "курица", "price": 520 }, { "label": "креветки", "price": 540 }] },
-    { "id": "bowl-sweet", "category": "bowls", "title": "Боул сладкий", "desc": "Йогурт, гранола, ягоды, банан", "variants": [{ "label": "", "price": 420 }] },
-
-    { "id": "salad-chicken", "category": "salads", "title": "Салат с цыплёнком", "desc": "Курица, микс салата, авокадо, помидоры черри, киноа, красный лук, соус шрирача, оливковое масло", "variants": [{ "label": "", "price": 440 }] },
-    { "id": "salad-caesar", "category": "salads", "title": "Салат «Цезарь»", "desc": "Курица, салат романо, помидоры черри, соус «Цезарь», крутоны, сыр пармезан", "variants": [{ "label": "", "price": 440 }] },
-    { "id": "salad-shrimp", "category": "salads", "title": "Салат с креветками", "desc": "Креветки, авокадо, микс салата, помидоры черри, фетакса, соус медовая горчица, оливковое масло", "variants": [{ "label": "", "price": 460 }] },
-
-    { "id": "porridge-oat", "category": "porridge", "title": "Овсяная каша с бананом", "desc": "Овсяная крупа, банановое молоко, банан, орехи, мёд", "variants": [{ "label": "", "price": 290 }] },
-    { "id": "porridge-rice", "category": "porridge", "title": "Рисовая каша", "desc": "Рисовая крупа, кокосовое молоко, банан, сгущёнка, кокосовая стружка", "variants": [{ "label": "", "price": 290 }] }
+    {
+      "id": "espresso",
+      "category": "coffee-classic",
+      "title": "Эспрессо",
+      "variants": [
+        {
+          "label": "40 мл",
+          "price": 180
+        }
+      ]
+    },
+    {
+      "id": "americano",
+      "category": "coffee-classic",
+      "title": "Американо",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 180
+        }
+      ]
+    },
+    {
+      "id": "filter",
+      "category": "coffee-classic",
+      "title": "Фильтр-кофе",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 150
+        },
+        {
+          "label": "300 мл",
+          "price": 200
+        }
+      ]
+    },
+    {
+      "id": "filter-pomegranate",
+      "category": "coffee-classic",
+      "title": "Фильтр гранатовый",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 200
+        },
+        {
+          "label": "300 мл",
+          "price": 270
+        }
+      ]
+    },
+    {
+      "id": "v60",
+      "category": "coffee-classic",
+      "title": "Воронка",
+      "variants": [
+        {
+          "label": "250 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "cappuccino",
+      "category": "coffee-milk",
+      "title": "Капучино",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 200
+        },
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "flat-white",
+      "category": "coffee-milk",
+      "title": "Флэт уайт",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "latte",
+      "category": "coffee-milk",
+      "title": "Латте",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 270
+        }
+      ]
+    },
+    {
+      "id": "cheese-latte",
+      "category": "coffee-milk",
+      "title": "Сырный латте с карамелью",
+      "hit": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "raf-classic",
+      "category": "coffee-raf",
+      "title": "Раф классический",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "raf-peanut",
+      "category": "coffee-raf",
+      "title": "Раф арахисовый",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "raf-pistachio",
+      "category": "coffee-raf",
+      "title": "Раф фисташка",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 400
+        }
+      ]
+    },
+    {
+      "id": "raf-urbech",
+      "category": "coffee-raf",
+      "title": "Раф с урбечем",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "raf-caramel",
+      "category": "coffee-raf",
+      "title": "Раф домашняя карамель",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "matcha-latte",
+      "category": "matcha",
+      "title": "Матча латте",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 280
+        }
+      ]
+    },
+    {
+      "id": "matcha-tonic",
+      "category": "matcha",
+      "title": "Матча тоник",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 280
+        }
+      ]
+    },
+    {
+      "id": "matcha-raspberry",
+      "category": "matcha",
+      "title": "Матча с малиной",
+      "hit": true,
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "matcha-shot",
+      "category": "matcha",
+      "title": "Матча шот",
+      "hit": true,
+      "variants": [
+        {
+          "label": "80 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "matcha-orange",
+      "category": "matcha",
+      "title": "Апельсиновая матча",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 370
+        }
+      ]
+    },
+    {
+      "id": "matcha-cheese-icecream",
+      "category": "matcha",
+      "title": "Матча / сыр / мороженое",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "cacao-cheese",
+      "category": "cacao",
+      "title": "Какао с сырной пенкой",
+      "variants": [
+        {
+          "label": "250 мл",
+          "price": 320
+        }
+      ]
+    },
+    {
+      "id": "cacao-classic",
+      "category": "cacao",
+      "title": "Классический какао",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 180
+        },
+        {
+          "label": "300 мл",
+          "price": 220
+        }
+      ]
+    },
+    {
+      "id": "cacao-peanut",
+      "category": "cacao",
+      "title": "Арахисовый какао",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "cacao-ice-cheese",
+      "category": "cacao",
+      "title": "Айс какао с сырной пенкой",
+      "hit": true,
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "coldbrew-cola",
+      "category": "coffee-cold",
+      "title": "Колд брю кола",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "coldbrew-pomegranate",
+      "category": "coffee-cold",
+      "title": "Колд брю гранат",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "bumble",
+      "category": "coffee-cold",
+      "title": "Бамбл",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "honey-tonic",
+      "category": "coffee-cold",
+      "title": "Медовый тоник",
+      "hit": true,
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "pomegranate-tonic",
+      "category": "coffee-cold",
+      "title": "Гранатовый тоник",
+      "hit": true,
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "kagor-tonic",
+      "category": "coffee-cold",
+      "title": "Кагор тоник",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "espresso-tonic",
+      "category": "coffee-cold",
+      "title": "Эспрессо тоник",
+      "cold": true,
+      "variants": [
+        {
+          "label": "350 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "ice-latte",
+      "category": "coffee-cold",
+      "title": "Айс латте",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 240
+        }
+      ]
+    },
+    {
+      "id": "ice-coffee",
+      "category": "coffee-cold",
+      "title": "Айс кофе",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "ice-urbech",
+      "category": "coffee-cold",
+      "title": "Айс урбеч",
+      "cold": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "tea-assam",
+      "category": "tea",
+      "title": "Ассам",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 200
+        }
+      ]
+    },
+    {
+      "id": "tea-jasmine",
+      "category": "tea",
+      "title": "Зелёный с жасмином",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 200
+        }
+      ]
+    },
+    {
+      "id": "tea-herbs",
+      "category": "tea",
+      "title": "Сбор трав",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 200
+        }
+      ]
+    },
+    {
+      "id": "tea-milk-oolong",
+      "category": "tea",
+      "title": "Молочный улун",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "tea-fruit",
+      "category": "tea",
+      "title": "Наглый фрукт",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 200
+        }
+      ]
+    },
+    {
+      "id": "tea-shu-puer",
+      "category": "tea",
+      "title": "Шу пуэр",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "tea-da-hong-pao",
+      "category": "tea",
+      "title": "Да Хун Пао",
+      "variants": [
+        {
+          "label": "800 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "warm-seabuckthorn",
+      "category": "warm",
+      "title": "Облепиховый чай",
+      "hit": true,
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "warm-gluhwein-tea",
+      "category": "warm",
+      "title": "Чай глинтвейн",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "warm-raspberry-ginger",
+      "category": "warm",
+      "title": "Малина-имбирь",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "warm-berry-punch",
+      "category": "warm",
+      "title": "Ягодный пунш",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "fresh-orange",
+      "category": "fresh",
+      "title": "Апельсиновый фреш",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 250
+        },
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "fresh-apple",
+      "category": "fresh",
+      "title": "Яблочный фреш",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 250
+        },
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "fresh-carrot",
+      "category": "fresh",
+      "title": "Морковный фреш",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 250
+        },
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "fresh-pomegranate",
+      "category": "fresh",
+      "title": "Гранатовый фреш",
+      "variants": [
+        {
+          "label": "200 мл",
+          "price": 300
+        },
+        {
+          "label": "300 мл",
+          "price": 400
+        }
+      ]
+    },
+    {
+      "id": "shake-banana",
+      "category": "shakes",
+      "title": "Банановый",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "shake-snickers",
+      "category": "shakes",
+      "title": "Сникерс",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "shake-currant-raspberry",
+      "category": "shakes",
+      "title": "Смородина-малина",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 280
+        }
+      ]
+    },
+    {
+      "id": "shake-strawberry",
+      "category": "shakes",
+      "title": "Клубничный",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 280
+        }
+      ]
+    },
+    {
+      "id": "shake-protein",
+      "category": "shakes",
+      "title": "Протеиновый",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 330
+        }
+      ]
+    },
+    {
+      "id": "lemonade-honey",
+      "category": "lemonade",
+      "title": "Медовый лимонад",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "lemonade-cherry",
+      "category": "lemonade",
+      "title": "Вишнёвый лимонад",
+      "variants": [
+        {
+          "label": "300 мл",
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "bf-nature",
+      "category": "breakfast",
+      "title": "Как на природе",
+      "desc": "Тушёное мясо, куриное яйцо, помидоры, микс зелени, хлеб тартин",
+      "variants": [
+        {
+          "label": "",
+          "price": 590
+        }
+      ]
+    },
+    {
+      "id": "bf-spinach-omelet",
+      "category": "breakfast",
+      "title": "Шпинатный омлет с креветками",
+      "desc": "Куриные яйца, креветки, молодой шпинат, помидоры черри, маринованные опята, микс салата",
+      "variants": [
+        {
+          "label": "",
+          "price": 530
+        }
+      ]
+    },
+    {
+      "id": "bf-benedict",
+      "category": "breakfast",
+      "title": "Бенедикт с лососем",
+      "desc": "Бриошь, яйцо пашот, лосось с/с, авокадо, молодой шпинат, соус сливочно-икорный",
+      "variants": [
+        {
+          "label": "",
+          "price": 640
+        }
+      ]
+    },
+    {
+      "id": "bf-bavarian",
+      "category": "breakfast",
+      "title": "Баварский",
+      "desc": "Куриные яйца, сосиски, микс салата, помидоры черри, огурец, соус «Цезарь», оливковое масло, хлеб тартин",
+      "variants": [
+        {
+          "label": "",
+          "price": 490
+        }
+      ]
+    },
+    {
+      "id": "bf-syrniki",
+      "category": "breakfast",
+      "title": "Сырники",
+      "desc": "Сырники, крем из варёной сгущёнки, ягодное кули, орехи, карамель",
+      "variants": [
+        {
+          "label": "",
+          "price": 490
+        }
+      ]
+    },
+    {
+      "id": "ciabatta-turkey",
+      "category": "ciabatta",
+      "title": "Чиабатта с индейкой",
+      "desc": "Индейка копчёная, салат романо, огурец, помидор, сыр чеддер, соус тар-тар",
+      "variants": [
+        {
+          "label": "",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "ciabatta-salmon",
+      "category": "ciabatta",
+      "title": "Чиабатта с лососем",
+      "desc": "Лосось с/с, гуакамоле, соус крем-чиз, салат романо, огурец",
+      "variants": [
+        {
+          "label": "",
+          "price": 370
+        }
+      ]
+    },
+    {
+      "id": "bowl-salmon",
+      "category": "bowls",
+      "title": "Боул с сёмгой",
+      "desc": "Рис басмати, лосось с/с, авокадо, огурец, помидоры черри, микс салата, кукуруза, соус «Цезарь»",
+      "variants": [
+        {
+          "label": "",
+          "price": 520
+        }
+      ]
+    },
+    {
+      "id": "bowl-chicken-shrimp",
+      "category": "bowls",
+      "title": "Боул с курицей / креветками",
+      "desc": "Пикантный рис, яйцо, соус спайси, кукуруза, помидоры черри, шпинат",
+      "variants": [
+        {
+          "label": "курица",
+          "price": 520
+        },
+        {
+          "label": "креветки",
+          "price": 540
+        }
+      ]
+    },
+    {
+      "id": "bowl-sweet",
+      "category": "bowls",
+      "title": "Боул сладкий",
+      "desc": "Йогурт, гранола, ягоды, банан",
+      "variants": [
+        {
+          "label": "",
+          "price": 420
+        }
+      ]
+    },
+    {
+      "id": "salad-chicken",
+      "category": "salads",
+      "title": "Салат с цыплёнком",
+      "desc": "Курица, микс салата, авокадо, помидоры черри, киноа, красный лук, соус шрирача, оливковое масло",
+      "variants": [
+        {
+          "label": "",
+          "price": 440
+        }
+      ]
+    },
+    {
+      "id": "salad-caesar",
+      "category": "salads",
+      "title": "Салат «Цезарь»",
+      "desc": "Курица, салат романо, помидоры черри, соус «Цезарь», крутоны, сыр пармезан",
+      "variants": [
+        {
+          "label": "",
+          "price": 440
+        }
+      ]
+    },
+    {
+      "id": "salad-shrimp",
+      "category": "salads",
+      "title": "Салат с креветками",
+      "desc": "Креветки, авокадо, микс салата, помидоры черри, фетакса, соус медовая горчица, оливковое масло",
+      "variants": [
+        {
+          "label": "",
+          "price": 460
+        }
+      ]
+    },
+    {
+      "id": "porridge-oat",
+      "category": "porridge",
+      "title": "Овсяная каша с бананом",
+      "desc": "Овсяная крупа, банановое молоко, банан, орехи, мёд",
+      "variants": [
+        {
+          "label": "",
+          "price": 290
+        }
+      ]
+    },
+    {
+      "id": "porridge-rice",
+      "category": "porridge",
+      "title": "Рисовая каша",
+      "desc": "Рисовая крупа, кокосовое молоко, банан, сгущёнка, кокосовая стружка",
+      "variants": [
+        {
+          "label": "",
+          "price": 290
+        }
+      ]
+    }
   ]
 }
