@@ -92,4 +92,5 @@ export function remoteApi(baseUrl: string): Api {
   }
 }
 
-export const api: Api = import.meta.env.VITE_API_URL ? remoteApi(import.meta.env.VITE_API_URL) : localApi
+// VITE_API_URL='' означает «тот же адрес, что и приложение»; не задан вовсе означает демо без сервера
+export const api: Api = import.meta.env.VITE_API_URL !== undefined ? remoteApi(import.meta.env.VITE_API_URL) : localApi

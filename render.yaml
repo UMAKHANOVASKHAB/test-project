@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ninebar-coffee
+    runtime: docker
+    plan: free
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: DB_FILE
+        value: /tmp/ninebar.db

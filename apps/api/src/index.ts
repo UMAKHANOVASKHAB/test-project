@@ -4,6 +4,8 @@ import express from 'express'
 import { createBot } from './bot/index.js'
 import { openDb } from './db/index.js'
 import { ordersRouter } from './routes/orders.js'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 const token = process.env.BOT_TOKEN
 if (!token) throw new Error('BOT_TOKEN не задан (apps/api/.env)')
@@ -16,6 +18,13 @@ app.use(cors())
 app.use(express.json({ limit: '64kb' }))
 app.get('/health', (_req, res) => res.json({ ok: true }))
 app.use(ordersRouter(db, { notifyOrder, notifyGuest }))
+
+// Отдаём собранный мини-апп с того же адреса, чтобы для демо хватило одного туннеля
+const webDist = resolve(process.env.WEB_DIST ?? '../web/dist')
+if (existsSync(webDist)) {
+  app.use(express.static(webDist))
+  app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(resolve(webDist, 'index.html')))
+}
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, () => console.log(`API на http://localhost:${port}`))

@@ -59,6 +59,13 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     }
   }
 
+  // Кнопка «Меню» слева от поля ввода открывает мини-апп
+  if (webappUrl) {
+    bot.api
+      .setChatMenuButton({ menu_button: { type: 'web_app', text: 'Меню', web_app: { url: webappUrl } } })
+      .catch((e) => console.error('setChatMenuButton', e))
+  }
+
   return { bot, notifyOrder, notifyGuest }
 }
 

@@ -22,6 +22,7 @@
 
 ## Этап 2. Бэк и бот (после получения токена)
 
-- [ ] T10. `apps/api`: Express + SQLite, `GET /api/menu`, `POST /api/orders`, `GET /api/loyalty/:tgId`.
-- [ ] T11. Бот grammy: `/start` с кнопкой мини-аппа, отправка заказа в чат кофейни.
-- [ ] T12. Переключить фронт на `remoteApi`, деплой на Railway.
+- [x] T10. `apps/api`: Express + SQLite, `GET /api/menu`, `POST /api/orders`, `GET /api/loyalty/:tgId`.
+- [x] T11. Бот grammy: `/start` с кнопкой мини-аппа, отправка заказа в чат кофейни.
+- [x] T12. Переключить фронт на `remoteApi` (тот же адрес).
+- [ ] T13. Деплой одним контейнером (Dockerfile) на Render/Railway, WEBAPP_URL в .env, кнопка «Меню» в боте.
