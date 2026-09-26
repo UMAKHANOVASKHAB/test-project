@@ -1,0 +1,67 @@
+import { Bot, InlineKeyboard } from 'grammy'
+import type { Db, OrderRow } from '../db/index.js'
+
+const ADMIN_KEY = 'admin_chat_id'
+
+export function createBot(token: string, db: Db, webappUrl: string) {
+  const bot = new Bot(token)
+
+  const adminChatId = () => process.env.ADMIN_CHAT_ID || db.getSetting(ADMIN_KEY)
+
+  bot.command('start', async (ctx) => {
+    const kb = webappUrl ? new InlineKeyboard().webApp('☕️ Открыть меню', webappUrl) : undefined
+    await ctx.reply(
+      'Ассаляму алейкум! Это 9 bar coffee, ул. Леваневского, 11.\n\n' +
+        'Здесь можно посмотреть меню, заказать заранее и забрать без очереди. Каждый 6-й кофе бесплатно.',
+      { reply_markup: kb },
+    )
+  })
+
+  // Кто получает заказы: первый, кто напишет /admin, или ADMIN_CHAT_ID из .env
+  bot.command('admin', async (ctx) => {
+    db.setSetting(ADMIN_KEY, String(ctx.chat.id))
+    await ctx.reply(`Готово. Заказы будут приходить в этот чат (id ${ctx.chat.id}).`)
+  })
+
+  bot.command('id', async (ctx) => {
+    await ctx.reply(`Ваш chat id: ${ctx.chat.id}`)
+  })
+
+  async function notifyOrder(o: OrderRow) {
+    const to = adminChatId()
+    if (!to) return false
+    const lines = o.lines
+      .map((l) => {
+        const parts = [l.title, l.variant, ...l.addons].filter(Boolean).join(' · ')
+        return `• ${parts}${l.qty > 1 ? ` ×${l.qty}` : ''} — ${l.price} ₽`
+      })
+      .join('\n')
+    const text =
+      `🧾 <b>Заказ №${o.id}</b> · заберут в <b>${o.pickupAt}</b>\n` +
+      `👤 ${escapeHtml(o.userName)}\n\n` +
+      `${escapeHtml(lines)}\n\n` +
+      (o.useFreeCoffee ? `🎁 Бесплатный кофе по карте\n` : '') +
+      (o.comment ? `💬 ${escapeHtml(o.comment)}\n` : '') +
+      `\n<b>Итого: ${o.total} ₽</b> · оплата при получении`
+    await bot.api.sendMessage(to, text, { parse_mode: 'HTML' })
+    return true
+  }
+
+  async function notifyGuest(o: OrderRow) {
+    if (!o.userId) return
+    try {
+      await bot.api.sendMessage(
+        o.userId,
+        `✅ Заказ №${o.id} принят. Будет готов к ${o.pickupAt}. Покажите это сообщение бариста.`,
+      )
+    } catch {
+      /* гость не начинал диалог с ботом: Telegram не даст написать первым */
+    }
+  }
+
+  return { bot, notifyOrder, notifyGuest }
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
