@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Header } from '../components/Header'
 import { CategoryTabs } from '../components/CategoryTabs'
-import { ItemCard } from '../components/ItemCard'
+import { ItemRow } from '../components/ItemRow'
 import { VariantSheet } from '../components/VariantSheet'
 import { useCart } from '../state/CartContext'
 import { haptic } from '../lib/telegram'
+import { sharedVolume } from '../lib/menuView'
 import type { Addon, Menu, MenuItem, Variant } from '../types/menu'
 
 export function MenuScreen({ menu }: { menu: Menu }) {
-  const { dispatch } = useCart()
-  const [active, setActive] = useState(menu.categories[0].id)
+  const { cart, dispatch } = useCart()
+  const [group, setGroup] = useState(menu.groups[0].id)
+  const categories = useMemo(() => menu.categories.filter((c) => c.group === group), [menu, group])
+  const [active, setActive] = useState(categories[0].id)
   const [picking, setPicking] = useState<MenuItem | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
@@ -19,20 +22,37 @@ export function MenuScreen({ menu }: { menu: Menu }) {
     return m
   }, [menu])
 
+  const countInCart = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const l of cart.lines) m.set(l.item.id, (m.get(l.item.id) ?? 0) + l.qty)
+    return m
+  }, [cart])
+
   const addonsFor = (item: MenuItem): Addon[] => menu.addons.filter((a) => a.forCategories.includes(item.category))
 
-  // Подсветка активной категории при прокрутке
+  // Подсветка активного раздела при прокрутке
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
         if (visible[0]) setActive((visible[0].target as HTMLElement).dataset.cat!)
       },
-      { rootMargin: '-120px 0px -70% 0px' },
+      { rootMargin: '-140px 0px -70% 0px' },
     )
-    Object.values(sectionRefs.current).forEach((el) => el && obs.observe(el))
+    categories.forEach((c) => {
+      const el = sectionRefs.current[c.id]
+      if (el) obs.observe(el)
+    })
     return () => obs.disconnect()
-  }, [])
+  }, [categories])
+
+  const switchGroup = (id: string) => {
+    if (id === group) return
+    setGroup(id)
+    setActive(menu.categories.find((c) => c.group === id)!.id)
+    window.scrollTo({ top: 0 })
+    haptic('light')
+  }
 
   const scrollTo = (id: string) => {
     setActive(id)
@@ -40,8 +60,7 @@ export function MenuScreen({ menu }: { menu: Menu }) {
   }
 
   const quickAdd = (item: MenuItem) => {
-    const addons = addonsFor(item)
-    if (item.variants.length > 1 || addons.length > 0) {
+    if (item.variants.length > 1 || addonsFor(item).length > 0) {
       setPicking(item)
       return
     }
@@ -58,18 +77,31 @@ export function MenuScreen({ menu }: { menu: Menu }) {
     <div className="screen">
       <Header shop={menu.shop} />
       <div className="tabs-wrap">
-        <CategoryTabs categories={menu.categories} active={active} onPick={scrollTo} />
-      </div>
-      {menu.categories.map((c) => (
-        <section key={c.id} data-cat={c.id} ref={(el) => (sectionRefs.current[c.id] = el)} className="section">
-          <h2 className="section__title">
-            {c.emoji} {c.title}
-          </h2>
-          {(byCategory.get(c.id) ?? []).map((it) => (
-            <ItemCard key={it.id} item={it} emoji={c.emoji} onAdd={() => quickAdd(it)} />
+        <div className="groups" role="tablist">
+          {menu.groups.map((g) => (
+            <button key={g.id} role="tab" aria-selected={g.id === group} className={`group ${g.id === group ? 'is-active' : ''}`} onClick={() => switchGroup(g.id)}>
+              {g.title}
+            </button>
           ))}
-        </section>
-      ))}
+        </div>
+        <CategoryTabs categories={categories} active={active} onPick={scrollTo} />
+      </div>
+      {categories.map((c) => {
+        const items = byCategory.get(c.id) ?? []
+        const shared = sharedVolume(items)
+        return (
+          <section key={c.id} data-cat={c.id} ref={(el) => (sectionRefs.current[c.id] = el)} className="section">
+            <h2 className="section__title">
+              {c.title}
+              {shared && <span className="section__vol"> {shared}</span>}
+            </h2>
+            {items.map((it) => (
+              <ItemRow key={it.id} item={it} showVolume={!shared} inCart={countInCart.get(it.id) ?? 0} onAdd={() => quickAdd(it)} />
+            ))}
+            {c.id === 'tea' && <p className="section__note">Добавка к чаю: +30 ₽</p>}
+          </section>
+        )
+      })}
       <div className="spacer" />
       {picking && <VariantSheet item={picking} addons={addonsFor(picking)} onAdd={(v, a) => add(picking, v, a)} onClose={() => setPicking(null)} />}
     </div>

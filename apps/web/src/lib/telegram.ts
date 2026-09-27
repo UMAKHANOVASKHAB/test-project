@@ -7,8 +7,8 @@ export function initTelegram() {
   if (!inTelegram) return
   WebApp.ready()
   WebApp.expand()
-  WebApp.setHeaderColor('#f6efe6')
-  WebApp.setBackgroundColor('#f6efe6')
+  WebApp.setHeaderColor('#fbf3ea')
+  WebApp.setBackgroundColor('#fbf3ea')
 }
 
 export interface TgUser {

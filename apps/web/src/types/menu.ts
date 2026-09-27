@@ -16,7 +16,12 @@ export interface MenuItem {
 export interface Category {
   id: string
   title: string
-  emoji: string
+  group: string
+}
+
+export interface Group {
+  id: string
+  title: string
 }
 
 export interface Addon {
@@ -38,6 +43,7 @@ export interface Shop {
 
 export interface Menu {
   shop: Shop
+  groups: Group[]
   categories: Category[]
   addons: Addon[]
   items: MenuItem[]
