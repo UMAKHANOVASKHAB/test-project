@@ -123,11 +123,18 @@
 
 Фоны без людей и животных: бесплатные видео Pexels и Pixabay (запросы: mountains sunrise, rain window, mosque silhouette, clouds timelapse). Проверять, чтобы в кадре не было людей и музыки.
 
-Промпты для Шедеврума (Яндекс) или Kandinsky (Сбер), оба работают в России бесплатно:
-- «Мужчина в белой длинной джуббе и белой тюбетейке стоит спиной к камере у деревянного окна, за окном горы Дагестана на рассвете, мягкий тёплый свет, лица не видно, фотореализм, вертикальный кадр 9:16»
-- «Крупный план мужских рук, которые держат открытый Коран на деревянной подставке рахле, рядом чётки и стакан чая, тёплый утренний свет, без лица, вертикальный кадр 9:16»
-- «Мужчина в белой одежде сидит спиной к камере на каменной веранде, смотрит на горную долину в тумане, закат, лица не видно, вертикальный кадр 9:16»
-- «Старинная каменная мечеть в горном ауле издалека, туман, рассвет, без людей, вертикальный кадр 9:16»
+Инструменты (иностранные, топ на сентябрь 2026):
+- Картинки: GPT Image 2.5 в ChatGPT (лучше всех слушается промпта), Nano Banana 2 в приложении Gemini (есть бесплатно), Midjourney V8 (самая красивая картинка, от $10 в месяц).
+- Видео из картинки: Kling 3.0 (от $6.99, лучшее по цене), Google Veo 3.1 (лучшее качество, дороже). Sora закрыта.
+- Голос: ElevenLabs (лучший русский синтез). Для Корана не использовать.
+- Из России нужны VPN и зарубежная карта или сервис оплаты.
+
+Промпты (на английском, так точнее):
+- "A man in a long white thobe and a white kufi stands with his back to the camera at a wooden window, mountains of Dagestan at sunrise outside, soft warm light, face not visible, photorealistic, vertical 9:16"
+- "Close-up of a man's hands holding an open Quran on a wooden rehal stand, prayer beads and a glass of tea beside it, warm morning light, no face, vertical 9:16"
+- "A man in white clothes sits with his back to the camera on a stone terrace overlooking a misty mountain valley at sunset, face not visible, vertical 9:16"
+- "An old stone mosque in a mountain village seen from afar, fog, sunrise, no people, vertical 9:16"
+- Для Kling или Veo к картинке: "slow camera push-in, curtain moves slightly in the wind, the man does not turn around, no people appear, no text"
 
 Если генератор всё же нарисовал лицо, кадр не используем.
 
