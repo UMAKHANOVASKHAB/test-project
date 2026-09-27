@@ -25,82 +25,82 @@
     {
       "id": "coffee-classic",
       "title": "Классический кофе",
-      "emoji": "☕️"
+      "group": "drinks"
     },
     {
       "id": "coffee-milk",
       "title": "Кофе с молоком",
-      "emoji": "🥛"
+      "group": "drinks"
     },
     {
       "id": "coffee-raf",
       "title": "Сливочный кофе",
-      "emoji": "🍮"
+      "group": "drinks"
     },
     {
       "id": "matcha",
       "title": "Матча",
-      "emoji": "🍵"
+      "group": "drinks"
     },
     {
       "id": "cacao",
       "title": "Какао",
-      "emoji": "🍫"
+      "group": "drinks"
     },
     {
       "id": "coffee-cold",
       "title": "Холодный кофе",
-      "emoji": "🧊"
+      "group": "drinks"
     },
     {
       "id": "tea",
       "title": "Чай",
-      "emoji": "🫖"
+      "group": "drinks"
     },
     {
       "id": "warm",
       "title": "Согревающие напитки",
-      "emoji": "🔥"
+      "group": "drinks"
     },
     {
       "id": "fresh",
       "title": "Фреш",
-      "emoji": "🍊"
+      "group": "drinks"
     },
     {
       "id": "shakes",
       "title": "Молочные коктейли",
-      "emoji": "🥤"
+      "group": "drinks"
     },
     {
       "id": "lemonade",
       "title": "Лимонады",
-      "emoji": "🍋"
+      "group": "drinks"
     },
     {
       "id": "breakfast",
-      "title": "Завтраки",
-      "emoji": "🍳"
+      "title": "Завтраки + фреш + кофе",
+      "group": "food"
     },
     {
       "id": "ciabatta",
       "title": "Чиабатта",
-      "emoji": "🥪"
+      "group": "food"
     },
     {
       "id": "bowls",
       "title": "Боулы",
-      "emoji": "🥗"
+      "group": "food"
     },
     {
       "id": "salads",
       "title": "Салаты",
-      "emoji": "🥬"
+      "group": "food"
     },
     {
       "id": "porridge",
       "title": "Каши",
-      "emoji": "🥣"
+      "group": "food"
     }
   ],
   "addons": [
@@ -431,7 +431,6 @@
       "id": "coldbrew-cola",
       "category": "coffee-cold",
       "title": "Колд брю кола",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -443,7 +442,6 @@
       "id": "coldbrew-pomegranate",
       "category": "coffee-cold",
       "title": "Колд брю гранат",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -455,7 +453,6 @@
       "id": "bumble",
       "category": "coffee-cold",
       "title": "Бамбл",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -468,7 +465,6 @@
       "category": "coffee-cold",
       "title": "Медовый тоник",
       "hit": true,
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -481,7 +477,6 @@
       "category": "coffee-cold",
       "title": "Гранатовый тоник",
       "hit": true,
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -493,7 +488,6 @@
       "id": "kagor-tonic",
       "category": "coffee-cold",
       "title": "Кагор тоник",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -505,7 +499,6 @@
       "id": "espresso-tonic",
       "category": "coffee-cold",
       "title": "Эспрессо тоник",
-      "cold": true,
       "variants": [
         {
           "label": "350 мл",
@@ -517,7 +510,6 @@
       "id": "ice-latte",
       "category": "coffee-cold",
       "title": "Айс латте",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -529,7 +521,6 @@
       "id": "ice-coffee",
       "category": "coffee-cold",
       "title": "Айс кофе",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -541,7 +532,6 @@
       "id": "ice-urbech",
       "category": "coffee-cold",
       "title": "Айс урбеч",
-      "cold": true,
       "variants": [
         {
           "label": "300 мл",
@@ -991,6 +981,16 @@
           "price": 290
         }
       ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "drinks",
+      "title": "Напитки"
+    },
+    {
+      "id": "food",
+      "title": "Еда"
     }
   ]
 }
