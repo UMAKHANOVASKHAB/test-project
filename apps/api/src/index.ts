@@ -4,6 +4,8 @@ import express from 'express'
 import { createBot } from './bot/index.js'
 import { openDb } from './db/index.js'
 import { ordersRouter } from './routes/orders.js'
+import { telegramAuth } from './auth.js'
+import { loadMenu } from './pricing.js'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -26,7 +28,8 @@ const app = express()
 app.use(cors())
 app.use(express.json({ limit: '64kb' }))
 app.get('/health', (_req, res) => res.json({ ok: true }))
-app.use(ordersRouter(db, { notifyOrder, notifyGuest }))
+app.use('/api', telegramAuth(token))
+app.use(ordersRouter(db, { notifyOrder, notifyGuest }, loadMenu()))
 
 // Отдаём собранный мини-апп с того же адреса, чтобы для демо хватило одного туннеля
 const webDist = resolve(process.env.WEB_DIST ?? '../web/dist')

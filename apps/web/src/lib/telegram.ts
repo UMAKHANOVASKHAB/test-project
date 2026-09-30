@@ -11,6 +11,16 @@ export function initTelegram() {
   WebApp.setBackgroundColor('#fbf3ea')
 }
 
+/** Подписанные данные запуска: сервер проверяет по ним, кто делает заказ */
+export function initData(): string {
+  return inTelegram ? WebApp.initData ?? '' : ''
+}
+
+export function showAlert(text: string) {
+  if (inTelegram) WebApp.showAlert(text)
+  else window.alert(text)
+}
+
 export interface TgUser {
   id: number
   name: string

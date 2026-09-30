@@ -1,65 +1,50 @@
 import { Router } from 'express'
-import type { Db, OrderLine } from '../db/index.js'
+import type { Db } from '../db/index.js'
+import type { TgUser } from '../auth.js'
+import { priceOrder, type Menu } from '../pricing.js'
 
 export interface Notifier {
   notifyOrder(o: any): Promise<boolean>
   notifyGuest(o: any): Promise<void>
 }
 
-export function validateOrder(body: any): { ok: true; order: any; stampsEarned: number } | { ok: false; error: string } {
+/** Проверяет то, что заказ не может посчитать сервер: время и комментарий. */
+export function validateOrder(body: any): { ok: true; pickupAt: string; comment: string } | { ok: false; error: string } {
   if (!body || typeof body !== 'object') return { ok: false, error: 'bad body' }
-  const lines = body.lines
-  if (!Array.isArray(lines) || lines.length === 0) return { ok: false, error: 'empty order' }
-  for (const l of lines as OrderLine[]) {
-    if (!l.title || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > 20) return { ok: false, error: 'bad line' }
-    if (!Number.isFinite(l.price) || l.price < 0) return { ok: false, error: 'bad price' }
-  }
-  if (!/^\d{2}:\d{2}$/.test(body.pickupAt ?? '')) return { ok: false, error: 'bad pickup time' }
-  if (!Number.isFinite(body.total) || body.total < 0) return { ok: false, error: 'bad total' }
-  const stampsEarned = Number.isInteger(body.stampsEarned) ? Math.max(0, Math.min(20, body.stampsEarned)) : 0
-  return {
-    ok: true,
-    stampsEarned,
-    order: {
-      userId: Number(body.userId) || 0,
-      userName: String(body.userName ?? 'Гость').slice(0, 80),
-      lines: lines.map((l: OrderLine) => ({
-        itemId: String(l.itemId ?? ''),
-        title: String(l.title).slice(0, 80),
-        variant: String(l.variant ?? '').slice(0, 40),
-        addons: Array.isArray(l.addons) ? l.addons.map(String).slice(0, 5) : [],
-        qty: l.qty,
-        price: Math.round(l.price),
-        category: String(l.category ?? ''),
-      })),
-      total: Math.round(body.total),
-      pickupAt: body.pickupAt,
-      comment: String(body.comment ?? '').slice(0, 300),
-      useFreeCoffee: !!body.useFreeCoffee,
-    },
-  }
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(body.pickupAt ?? '')) return { ok: false, error: 'bad pickup time' }
+  return { ok: true, pickupAt: body.pickupAt, comment: String(body.comment ?? '').slice(0, 300) }
 }
 
-export function ordersRouter(db: Db, notifier: Notifier) {
+export function ordersRouter(db: Db, notifier: Notifier, menu: Menu) {
   const r = Router()
 
   r.post('/api/orders', async (req, res) => {
+    const user: TgUser = res.locals.user
     const v = validateOrder(req.body)
     if (!v.ok) return res.status(400).json({ error: v.error })
-    const order = db.createOrder(v.order, v.stampsEarned)
+    // гость без Telegram не копит штампы, поэтому и бесплатного кофе у него нет
+    const stamps = user.id ? db.getStamps(user.id) : 0
+    const p = priceOrder(menu, req.body.lines, user.id > 0 && !!req.body.useFreeCoffee, stamps)
+    if (!p.ok) return res.status(400).json({ error: p.error })
+    const order = db.createOrder(
+      { userId: user.id, userName: user.name, lines: p.order.lines, total: p.order.total, pickupAt: v.pickupAt, comment: v.comment, useFreeCoffee: p.order.useFreeCoffee },
+      user.id ? p.order.stampsEarned : 0,
+    )
     // уведомления не должны ломать ответ гостю
     notifier.notifyOrder(order).catch((e) => console.error('notifyOrder', e))
     notifier.notifyGuest(order).catch(() => {})
     res.json(order)
   })
 
-  r.get('/api/orders', (req, res) => {
-    const userId = Number(req.query.userId) || 0
-    res.json(db.listOrders(userId))
+  // только свои заказы и штампы: пользователь берётся из подписи Telegram, а не из адреса
+  r.get('/api/orders', (_req, res) => {
+    const user: TgUser = res.locals.user
+    res.json(user.id ? db.listOrders(user.id) : [])
   })
 
-  r.get('/api/loyalty/:userId', (req, res) => {
-    res.json({ stamps: db.getStamps(Number(req.params.userId) || 0) })
+  r.get('/api/loyalty', (_req, res) => {
+    const user: TgUser = res.locals.user
+    res.json({ stamps: user.id ? db.getStamps(user.id) : 0 })
   })
 
   return r
