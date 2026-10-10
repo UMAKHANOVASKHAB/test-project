@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { api, type NewOrder, type Order } from '../lib/api'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { api, ApiError, type NewOrder, type Order } from '../lib/api'
 import { loyaltyState, stampsForOrder } from '../lib/loyalty'
 import { rub } from '../lib/money'
 import { pickupSlots } from '../lib/slots'
@@ -17,6 +17,11 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
   const [stamps, setStamps] = useState(0)
   const [useFree, setUseFree] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  // ref, а не state: MainButton держит старую копию submit, и state там всегда «не занят»
+  const sending = useRef(false)
+  // один ключ на одну корзину: повтор после ошибки сети не создаст второй заказ
+  const clientKey = useRef(newKey())
 
   useEffect(() => {
     api.getStamps(user.id).then(setStamps)
@@ -32,8 +37,10 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
   const closed = slots.length === 0
 
   const submit = async () => {
-    if (empty || closed || busy) return
+    if (empty || closed || sending.current) return
+    sending.current = true
     setBusy(true)
+    setError('')
     const order: NewOrder = {
       userId: user.id,
       userName: user.name,
@@ -50,14 +57,27 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       pickupAt: slot,
       comment: comment.trim(),
       useFreeCoffee: useFree && canUseFree,
+      clientKey: clientKey.current,
     }
     const earned = stampsForOrder(order.lines, menu.shop.loyalty.countsCategories)
     try {
       const saved = await api.createOrder(order, earned)
       dispatch({ type: 'clear' })
       haptic('success')
+      clientKey.current = newKey()
       onDone(saved)
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        // штампы на сервере не сошлись с экраном: обновляем и просим подтвердить ещё раз
+        setUseFree(false)
+        api.getStamps(user.id).then(setStamps)
+        clientKey.current = newKey()
+        setError('Бесплатный кофе сейчас недоступен. Проверьте сумму и нажмите «Заказать» ещё раз.')
+      } else {
+        setError('Не получилось отправить заказ. Проверьте интернет и попробуйте ещё раз.')
+      }
     } finally {
+      sending.current = false
       setBusy(false)
     }
   }
@@ -149,6 +169,8 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
         <div className="muted">Оплата при получении</div>
       </div>
 
+      {error && <div className="error" role="alert">{error}</div>}
+
       {!inTelegram && (
         <button className="btn btn--primary" disabled={closed || busy} onClick={submit}>
           {busy ? 'Отправляем…' : `Заказать · ${rub(total)}`}
@@ -157,4 +179,9 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       <div className="spacer" />
     </div>
   )
+}
+
+function newKey(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
 }

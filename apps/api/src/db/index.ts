@@ -1,6 +1,10 @@
 import Database from 'better-sqlite3'
 import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { freeNow } from '../lib/pricing.js'
+
+/** Бесплатный кофе ещё не накоплен (или уже потрачен параллельным заказом) */
+export class FreeCoffeeError extends Error {}
 
 export interface OrderLine {
   itemId: string
@@ -49,14 +53,19 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
       value TEXT NOT NULL
     );
   `)
+  // Миграция для старой базы: ключ от повторной отправки одного и того же заказа
+  const cols = db.prepare(`PRAGMA table_info(orders)`).all() as { name: string }[]
+  if (!cols.some((c) => c.name === 'client_key')) db.exec(`ALTER TABLE orders ADD COLUMN client_key TEXT`)
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS orders_client_key ON orders(client_key)`)
   // Нумерация заказов с 101, чтобы бариста не путал с количеством
   db.exec(`INSERT OR IGNORE INTO sqlite_sequence(name, seq) VALUES ('orders', 100)`)
 
   const insertOrder = db.prepare(`
-    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, created_at)
-    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, @createdAt)
+    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, created_at, client_key)
+    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, @createdAt, @clientKey)
   `)
   const selectOrders = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 20`)
+  const selectByKey = db.prepare(`SELECT * FROM orders WHERE client_key = ?`)
   const selectStamps = db.prepare(`SELECT stamps FROM loyalty WHERE user_id = ?`)
   const upsertStamps = db.prepare(`
     INSERT INTO loyalty (user_id, stamps) VALUES (?, ?)
@@ -81,8 +90,25 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
     getStamps(userId: number): number {
       return (selectStamps.get(userId) as { stamps: number } | undefined)?.stamps ?? 0
     },
-    createOrder(o: Omit<OrderRow, 'id' | 'createdAt'>, stampsEarned: number): OrderRow {
+    /**
+     * Заказ и штампы пишутся одной транзакцией: либо всё, либо ничего.
+     * Повтор с тем же clientKey (двойное нажатие, повтор после обрыва сети) возвращает
+     * уже созданный заказ, а не второй.
+     */
+    createOrder(
+      o: Omit<OrderRow, 'id' | 'createdAt'>,
+      stampsEarned: number,
+      opts: { stampsForFree?: number; clientKey?: string } = {},
+    ): OrderRow & { duplicate?: boolean } {
       const tx = db.transaction(() => {
+        if (opts.clientKey) {
+          const existing = selectByKey.get(opts.clientKey)
+          // ключ чужого заказа не выдаёт его содержимое
+          if (existing && (existing as { user_id: number }).user_id === o.userId) return { ...rowToOrder(existing), duplicate: true }
+          if (existing) throw new Error('client key reused')
+        }
+        const prev = this.getStamps(o.userId)
+        if (o.useFreeCoffee && (!o.userId || !freeNow(prev, opts.stampsForFree ?? 6))) throw new FreeCoffeeError()
         const createdAt = new Date().toISOString()
         const res = insertOrder.run({
           userId: o.userId,
@@ -93,11 +119,10 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
           comment: o.comment,
           useFree: o.useFreeCoffee ? 1 : 0,
           createdAt,
+          clientKey: opts.clientKey ?? null,
         })
-        const prev = this.getStamps(o.userId)
-        // бесплатный кофе закрывает круг (+1), потом начисляются новые штампы
-        const next = o.useFreeCoffee ? prev + 1 + stampsEarned : prev + stampsEarned
-        upsertStamps.run(o.userId, next)
+        // штамп = купленный кофе, бесплатный тоже: 6-й кофе закрывает круг ровно до 0
+        if (o.userId) upsertStamps.run(o.userId, prev + stampsEarned)
         return { ...o, id: Number(res.lastInsertRowid), createdAt }
       })
       return tx()

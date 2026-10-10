@@ -17,6 +17,8 @@ COPY --from=build /app/apps/api/package.json apps/api/
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/web/dist apps/web/dist
+# по этому меню сервер сам считает цены и штампы
+COPY --from=build /app/apps/web/src/data/menu.json apps/web/src/data/menu.json
 # Railway запрещает VOLUME в Dockerfile: диск подключается в настройках сервиса (Volume → /data)
 ENV PORT=3000 WEB_DIST=/app/apps/web/dist DB_FILE=/data/ninebar.db
 EXPOSE 3000

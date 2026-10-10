@@ -25,6 +25,11 @@ export function currentUser(): TgUser {
   return { id: 0, name: 'Гость' }
 }
 
+/** Подписанные Telegram данные запуска: сервер проверяет их и узнаёт, кто заказывает */
+export function initData(): string {
+  return inTelegram ? WebApp.initData : ''
+}
+
 export function haptic(kind: 'light' | 'success' = 'light') {
   if (!inTelegram) return
   if (kind === 'success') WebApp.HapticFeedback.notificationOccurred('success')

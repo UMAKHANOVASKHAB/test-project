@@ -1,0 +1,22 @@
+# Проверка на каждый push и pull request: тесты, lint, сборка.
+# Красная галочка на GitHub значит «не выкладывать», пока не починено.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build -w apps/web
+      - run: npm run build -w apps/api

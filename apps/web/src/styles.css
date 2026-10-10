@@ -24,6 +24,7 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .h1 { font-size: 26px; font-weight: 700; margin: 8px 0 16px; letter-spacing: -0.01em; }
 .h2 { font-size: 18px; font-weight: 700; margin: 24px 0 10px; }
 .muted { color: var(--ink-2); font-size: 14px; }
+.error { margin: 12px 0; padding: 10px 12px; border-radius: 12px; background: #fbe4dd; color: #8a2f1d; font-size: 14px; }
 
 /* Шапка: логотип как на их меню, B(A)R с хвостиком девятки */
 .header { text-align: center; padding: 18px 0 14px; }

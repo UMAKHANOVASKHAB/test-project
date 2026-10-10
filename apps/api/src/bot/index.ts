@@ -17,8 +17,14 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     )
   })
 
-  // Кто получает заказы: первый, кто напишет /admin, или ADMIN_CHAT_ID из .env
+  // Кто получает заказы: ADMIN_CHAT_ID из переменных или первый, кто напишет /admin.
+  // Переназначить через /admin нельзя, иначе любой гость перехватит заказы кофейни.
   bot.command('admin', async (ctx) => {
+    const current = adminChatId()
+    if (current && current !== String(ctx.chat.id)) {
+      await ctx.reply('Получатель заказов уже назначен. Сменить его может владелец через ADMIN_CHAT_ID в настройках сервера.')
+      return
+    }
     db.setSetting(ADMIN_KEY, String(ctx.chat.id))
     await ctx.reply(`Готово. Заказы будут приходить в этот чат (id ${ctx.chat.id}).`)
   })

@@ -1,3 +1,5 @@
+import { initData } from './telegram'
+
 /**
  * Слой данных. Сейчас localApi (localStorage) для демо без сервера.
  * Когда появится бэк, VITE_API_URL переключит на remoteApi без правок экранов.
@@ -20,6 +22,8 @@ export interface NewOrder {
   pickupAt: string // "HH:MM"
   comment: string
   useFreeCoffee: boolean
+  /** одинаковый для повторов одного заказа: сервер не создаст дубль */
+  clientKey?: string
 }
 
 export interface Order extends NewOrder {
@@ -66,8 +70,8 @@ export const localApi: Api = {
     const order: Order = { ...o, id: s.seq, createdAt: new Date().toISOString() }
     s.orders.unshift(order)
     s.orders = s.orders.slice(0, 20)
-    // бесплатный кофе списывает цикл: штампы обнуляются до начала нового круга
-    s.stamps = o.useFreeCoffee ? s.stamps + 1 + stampsEarned : s.stamps + stampsEarned
+    // штамп = купленный кофе, бесплатный тоже: 6-й закрывает круг ровно до нуля
+    s.stamps += stampsEarned
     save(o.userId, s)
     return order
   },
@@ -79,18 +83,32 @@ export const localApi: Api = {
   },
 }
 
-export function remoteApi(baseUrl: string): Api {
+export class ApiError extends Error {
+  constructor(public status: number) {
+    super(`API ${status}`)
+  }
+}
+
+/**
+ * Сервер сам узнаёт пользователя по подписи Telegram (заголовок Authorization)
+ * и сам считает цены и штампы: userId и суммы в запросе ему не нужны.
+ */
+export function remoteApi(baseUrl: string, getInitData: () => string): Api {
   const json = async <T,>(path: string, init?: RequestInit): Promise<T> => {
-    const r = await fetch(`${baseUrl}${path}`, { headers: { 'Content-Type': 'application/json' }, ...init })
-    if (!r.ok) throw new Error(`API ${r.status}`)
+    const auth = getInitData()
+    const r = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: `tma ${auth}` } : {}) },
+    })
+    if (!r.ok) throw new ApiError(r.status)
     return (await r.json()) as T
   }
   return {
-    createOrder: (o, stampsEarned) => json('/api/orders', { method: 'POST', body: JSON.stringify({ ...o, stampsEarned }) }),
-    getStamps: async (userId) => (await json<{ stamps: number }>(`/api/loyalty/${userId}`)).stamps,
-    listOrders: (userId) => json(`/api/orders?userId=${userId}`),
+    createOrder: (o) => json('/api/orders', { method: 'POST', body: JSON.stringify(o) }),
+    getStamps: async () => (await json<{ stamps: number }>('/api/loyalty')).stamps,
+    listOrders: () => json('/api/orders'),
   }
 }
 
 // VITE_API_URL='' означает «тот же адрес, что и приложение»; не задан вовсе означает демо без сервера
-export const api: Api = import.meta.env.VITE_API_URL !== undefined ? remoteApi(import.meta.env.VITE_API_URL) : localApi
+export const api: Api = import.meta.env.VITE_API_URL !== undefined ? remoteApi(import.meta.env.VITE_API_URL, initData) : localApi
