@@ -10,6 +10,12 @@
 
 В начале любой задачи по коду сначала применяй навык `using-agent-skills`, чтобы выбрать подходящий рабочий процесс по фазе: Define → Plan → Build → Verify → Review → Ship.
 
+### Выборка из ECC (Affaan Mustafa, MIT)
+Взято выборочно из https://github.com/affaan-m/ECC после чтения каждого файла (подробности и лицензия: `.claude/third-party/ECC.md`). Хуки и остальное не ставили.
+- Агенты в `.claude/agents/`: `typescript-reviewer` (TS/Node: типы, async, безопасность), `react-reviewer` (хуки, доступность, рендер), `silent-failure-hunter` (проглоченные ошибки), `react-build-resolver` (ошибки сборки Vite/React). Для ревью кода вызывать вместе с нашим `code-reviewer`.
+- Навыки в `.claude/skills/`: `react-native-patterns` (мобильные приложения на Expo), `seo` (сайты), `marketing-campaign` (тексты и реклама).
+- Для маркетинга действуют правила честной продажи из `docs/halal-code-konspekt.md` (глава 10): без лжи, фейкового дефицита и выдуманных отзывов.
+
 ### Frontend Design (Anthropic, Apache 2.0)
 Навык `.claude/skills/frontend-design/`: как делать дизайн без шаблонного «ИИ-вида». Применять при создании нового интерфейса или переделке дизайна: сначала короткий план (палитра 4–6 цветов, шрифты, сетка, принципы), проверка плана на шаблонность, потом код и самопроверка по скриншотам.
 
