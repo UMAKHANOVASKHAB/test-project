@@ -13,7 +13,8 @@
 ### Выборка из ECC (Affaan Mustafa, MIT)
 Взято выборочно из https://github.com/affaan-m/ECC после чтения каждого файла (подробности и лицензия: `.claude/third-party/ECC.md`). Хуки и остальное не ставили.
 - Агенты в `.claude/agents/`: `typescript-reviewer` (TS/Node: типы, async, безопасность), `react-reviewer` (хуки, доступность, рендер), `silent-failure-hunter` (проглоченные ошибки), `react-build-resolver` (ошибки сборки Vite/React). Для ревью кода вызывать вместе с нашим `code-reviewer`.
-- Навыки в `.claude/skills/`: `react-native-patterns` (мобильные приложения на Expo), `seo` (сайты), `marketing-campaign` (тексты и реклама).
+- Навыки в `.claude/skills/`: `react-native-patterns` (мобильные приложения на Expo), `seo` (сайты), `marketing-campaign` (тексты и реклама), `scientific-db-pubmed-database` (поиск исследований в PubMed).
+- Медицинские вопросы (анализы, УЗИ, лечение): сверять с клиническими рекомендациями Минздрава РФ (cr.minzdrav.gov.ru) и исследованиями PubMed (метаанализы, рекомендации), указывать источник и уровень доказательности, не заменять врача.
 - Для маркетинга действуют правила честной продажи из `docs/halal-code-konspekt.md` (глава 10): без лжи, фейкового дефицита и выдуманных отзывов.
 
 ### Frontend Design (Anthropic, Apache 2.0)

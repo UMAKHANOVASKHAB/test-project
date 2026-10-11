@@ -3,7 +3,7 @@
 Источник: https://github.com/affaan-m/ECC, коммит 8ce348f (версия 2.2.3).
 Взяты выборочно и прочитаны перед установкой:
 - агенты: typescript-reviewer, react-reviewer, silent-failure-hunter, react-build-resolver
-- навыки: react-native-patterns, seo, marketing-campaign
+- навыки: react-native-patterns, seo, marketing-campaign, scientific-db-pubmed-database
 Хуки, правила и остальные навыки не устанавливались.
 
 ## Лицензия
