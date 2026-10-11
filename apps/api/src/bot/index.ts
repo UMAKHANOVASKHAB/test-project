@@ -1,4 +1,4 @@
-import { Bot, InlineKeyboard } from 'grammy'
+import { Bot, InlineKeyboard, InputFile } from 'grammy'
 import type { Db, OrderRow } from '../db/index.js'
 
 const ADMIN_KEY = 'admin_chat_id'
@@ -27,6 +27,31 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     }
     db.setSetting(ADMIN_KEY, String(ctx.chat.id))
     await ctx.reply(`Готово. Заказы будут приходить в этот чат (id ${ctx.chat.id}).`)
+  })
+
+  // Куда слать резервные копии: отдельный чат BACKUP_CHAT_ID, иначе чат получателя заказов
+  const backupChatId = () => process.env.BACKUP_CHAT_ID || adminChatId()
+
+  async function sendBackup(name: string, data: Buffer) {
+    const to = backupChatId()
+    if (!to) throw new Error('не задан BACKUP_CHAT_ID и не назначен получатель заказов')
+    await bot.api.sendDocument(to, new InputFile(data, name), {
+      caption: `Резервная копия базы 9 bar coffee, ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`,
+    })
+  }
+
+  async function reportBackupError(e: unknown) {
+    const to = adminChatId()
+    if (to) await bot.api.sendMessage(to, `⚠️ Резервная копия базы не сделана: ${e instanceof Error ? e.message : String(e)}`)
+  }
+
+  // Ручная копия по команде, только из чата, куда копии и приходят
+  let runBackup: (() => Promise<void>) | null = null
+  bot.command('backup', async (ctx) => {
+    if (String(ctx.chat.id) !== String(backupChatId())) return
+    if (!runBackup) return ctx.reply('Резервное копирование ещё не запущено')
+    await ctx.reply('Делаю копию…')
+    await runBackup()
   })
 
   bot.command('id', async (ctx) => {
@@ -72,7 +97,16 @@ export function createBot(token: string, db: Db, webappUrl: string) {
       .catch((e) => console.error('setChatMenuButton', e))
   }
 
-  return { bot, notifyOrder, notifyGuest }
+  return {
+    bot,
+    notifyOrder,
+    notifyGuest,
+    sendBackup,
+    reportBackupError,
+    setBackupRunner: (fn: () => Promise<void>) => {
+      runBackup = fn
+    },
+  }
 }
 
 function escapeHtml(s: string) {

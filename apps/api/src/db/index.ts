@@ -136,6 +136,10 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
     setSetting(key: string, value: string) {
       setSetting.run(key, value)
     },
+    /** Целостная копия базы в файл, можно делать на ходу, не останавливая сервер */
+    backupTo(file: string) {
+      return db.backup(file)
+    },
     close() {
       db.close()
     },

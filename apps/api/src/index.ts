@@ -3,6 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import { createBot } from './bot/index.js'
 import { openDb } from './db/index.js'
+import { startDailyBackup } from './lib/backup.js'
 import { loadMenu } from './lib/pricing.js'
 import { ordersRouter } from './routes/orders.js'
 import { existsSync } from 'node:fs'
@@ -20,6 +21,8 @@ const db = openDb()
 const created = token ? createBot(token, db, webappUrl) : null
 if (!created) console.error('BOT_TOKEN не задан: работает только сайт, бот выключен')
 const bot = created?.bot
+// Каждую ночь в 03:00 МСК (00:00 UTC) копия базы уходит в Telegram, то есть за пределы Railway
+if (created) created.setBackupRunner(startDailyBackup(db, created.sendBackup, created.reportBackupError, 0))
 const notifyOrder = created?.notifyOrder ?? (async () => false)
 const notifyGuest = created?.notifyGuest ?? (async () => {})
 
