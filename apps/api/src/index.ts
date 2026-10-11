@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
+import { scheduleDaily } from './backup.js'
 import { createBot } from './bot/index.js'
 import { openDb } from './db/index.js'
 import { ordersRouter } from './routes/orders.js'
@@ -21,6 +22,12 @@ if (!created) console.error('BOT_TOKEN не задан: работает тол�
 const bot = created?.bot
 const notifyOrder = created?.notifyOrder ?? (async () => false)
 const notifyGuest = created?.notifyGuest ?? (async () => {})
+
+// Каждую ночь копия базы уходит в Telegram: если сервер умрёт, данные останутся там
+if (created) {
+  const hourUtc = Number(process.env.BACKUP_HOUR_UTC ?? 0) // 0 UTC = 03:00 по Москве
+  scheduleDaily(hourUtc, async () => void (await created.sendBackup()))
+}
 
 const app = express()
 app.use(cors())

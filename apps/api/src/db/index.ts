@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3'
 import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { applyPendingRestore } from '../backup.js'
 
 export interface OrderLine {
   itemId: string
@@ -25,7 +26,10 @@ export interface OrderRow {
 }
 
 export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
-  if (file !== ':memory:') mkdirSync(dirname(file), { recursive: true })
+  if (file !== ':memory:') {
+    mkdirSync(dirname(file), { recursive: true })
+    if (applyPendingRestore(file)) console.log(`База восстановлена из копии: ${file}`)
+  }
   const db = new Database(file)
   db.pragma('journal_mode = WAL')
   db.exec(`
@@ -110,6 +114,11 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
     },
     setSetting(key: string, value: string) {
       setSetting.run(key, value)
+    },
+    file,
+    /** Целостная копия базы на ходу, заказы в это время не блокируются. */
+    async backup(dest: string) {
+      await db.backup(dest)
     },
     close() {
       db.close()
