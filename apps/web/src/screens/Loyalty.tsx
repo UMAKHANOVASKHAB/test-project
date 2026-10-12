@@ -29,7 +29,7 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
             ? 'Следующий кофе за наш счёт 🎉'
             : `Ещё ${s.left} ${plural(s.left, 'кофе', 'кофе', 'кофе')} до бесплатного`}
         </div>
-        <div className="loyalty-card__hint">Каждый {menu.shop.loyalty.stampsForFree}-й кофе бесплатно. Штамп за любой кофейный напиток.</div>
+        <div className="loyalty-card__hint">Каждый {menu.shop.loyalty.stampsForFree}-й кофе бесплатно. Штамп за любой кофейный напиток, начисляется, когда заберёте заказ.</div>
       </div>
 
       <h2 className="h2">Мои заказы</h2>
@@ -41,6 +41,7 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
               <span>№{o.id} · {new Date(o.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })} · {o.pickupAt}</span>
               <span>{rub(o.total)}</span>
             </div>
+            {o.status && <div className="muted">{STATUS[o.status]}</div>}
             <div className="muted">{o.lines.map((l) => `${l.title}${l.qty > 1 ? ` ×${l.qty}` : ''}`).join(', ')}</div>
           </div>
         ))}
@@ -49,6 +50,8 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
     </div>
   )
 }
+
+const STATUS = { new: 'Принят', ready: 'Готов, можно забирать', issued: 'Выдан', cancelled: 'Отменён' } as const
 
 function plural(n: number, one: string, few: string, many: string) {
   const m10 = n % 10, m100 = n % 100

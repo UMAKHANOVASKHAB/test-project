@@ -28,7 +28,7 @@ describe('копия и восстановление', () => {
     const dir = mkdtempSync(join(tmpdir(), 'ninebar-'))
     const file = join(dir, 'ninebar.db')
     const db = openDb(file)
-    db.createOrder(order, 1)
+    db.setStatus(db.createOrder(order, 1).id, 'issued')
     const copy = join(dir, 'copy.db')
     await db.backup(copy)
     expect(isSqliteFile(readFileSync(copy))).toBe(true)

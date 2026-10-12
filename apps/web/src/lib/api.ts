@@ -26,6 +26,8 @@ export interface NewOrder {
 
 export interface Order extends NewOrder {
   id: number
+  /** с сервера: new, ready, issued, cancelled. В демо без сервера нет */
+  status?: 'new' | 'ready' | 'issued' | 'cancelled'
   createdAt: string // ISO
 }
 

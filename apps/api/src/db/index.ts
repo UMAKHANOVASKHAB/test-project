@@ -13,6 +13,8 @@ export interface OrderLine {
   category: string
 }
 
+export type OrderStatus = 'new' | 'ready' | 'issued' | 'cancelled'
+
 export interface OrderRow {
   id: number
   userId: number
@@ -22,7 +24,18 @@ export interface OrderRow {
   pickupAt: string
   comment: string
   useFreeCoffee: boolean
+  status: OrderStatus
+  /** сколько штампов даст заказ, начисляются только при выдаче */
+  stampsEarned: number
   createdAt: string
+}
+
+// куда можно перейти из статуса: выданный и отменённый заказ уже не меняются
+const NEXT: Record<OrderStatus, OrderStatus[]> = {
+  new: ['ready', 'issued', 'cancelled'],
+  ready: ['issued', 'cancelled'],
+  issued: [],
+  cancelled: [],
 }
 
 export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
@@ -53,13 +66,21 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
       value TEXT NOT NULL
     );
   `)
+  // Старые базы: добавляем статус. Заказы до этой версии уже получили штампы при оформлении, поэтому считаем их выданными
+  const cols = (db.prepare(`PRAGMA table_info(orders)`).all() as { name: string }[]).map((c) => c.name)
+  if (!cols.includes('status')) db.exec(`ALTER TABLE orders ADD COLUMN status TEXT NOT NULL DEFAULT 'issued'`)
+  if (!cols.includes('stamps_earned')) db.exec(`ALTER TABLE orders ADD COLUMN stamps_earned INTEGER NOT NULL DEFAULT 0`)
+
   // Нумерация заказов с 101, чтобы бариста не путал с количеством
   db.exec(`INSERT OR IGNORE INTO sqlite_sequence(name, seq) VALUES ('orders', 100)`)
 
   const insertOrder = db.prepare(`
-    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, created_at)
-    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, @createdAt)
+    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, status, stamps_earned, created_at)
+    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, 'new', @stampsEarned, @createdAt)
   `)
+  const selectOrder = db.prepare(`SELECT * FROM orders WHERE id = ?`)
+  const updateStatus = db.prepare(`UPDATE orders SET status = ? WHERE id = ?`)
+  const selectPendingFree = db.prepare(`SELECT 1 FROM orders WHERE user_id = ? AND use_free = 1 AND status IN ('new', 'ready') LIMIT 1`)
   const selectOrders = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 20`)
   const selectStamps = db.prepare(`SELECT stamps FROM loyalty WHERE user_id = ?`)
   const upsertStamps = db.prepare(`
@@ -78,6 +99,8 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
     pickupAt: r.pickup_at,
     comment: r.comment,
     useFreeCoffee: !!r.use_free,
+    status: r.status,
+    stampsEarned: r.stamps_earned,
     createdAt: r.created_at,
   })
 
@@ -85,26 +108,46 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
     getStamps(userId: number): number {
       return (selectStamps.get(userId) as { stamps: number } | undefined)?.stamps ?? 0
     },
-    createOrder(o: Omit<OrderRow, 'id' | 'createdAt'>, stampsEarned: number): OrderRow {
-      const tx = db.transaction(() => {
-        const createdAt = new Date().toISOString()
-        const res = insertOrder.run({
-          userId: o.userId,
-          userName: o.userName,
-          lines: JSON.stringify(o.lines),
-          total: o.total,
-          pickupAt: o.pickupAt,
-          comment: o.comment,
-          useFree: o.useFreeCoffee ? 1 : 0,
-          createdAt,
-        })
-        const prev = this.getStamps(o.userId)
-        // бесплатный кофе закрывает круг (+1), потом начисляются новые штампы
-        const next = o.useFreeCoffee ? prev + 1 + stampsEarned : prev + stampsEarned
-        upsertStamps.run(o.userId, next)
-        return { ...o, id: Number(res.lastInsertRowid), createdAt }
+    /** Заказ без штампов: штампы приходят, только когда бариста нажмёт «Выдан». */
+    createOrder(o: Omit<OrderRow, 'id' | 'createdAt' | 'status' | 'stampsEarned'>, stampsEarned: number): OrderRow {
+      const createdAt = new Date().toISOString()
+      const res = insertOrder.run({
+        userId: o.userId,
+        userName: o.userName,
+        lines: JSON.stringify(o.lines),
+        total: o.total,
+        pickupAt: o.pickupAt,
+        comment: o.comment,
+        useFree: o.useFreeCoffee ? 1 : 0,
+        stampsEarned,
+        createdAt,
       })
-      return tx()
+      return { ...o, id: Number(res.lastInsertRowid), status: 'new', stampsEarned, createdAt }
+    },
+    getOrder(id: number): OrderRow | undefined {
+      const r = selectOrder.get(id)
+      return r ? rowToOrder(r) : undefined
+    },
+    /** Есть ли невыданный заказ с бесплатным кофе: второй такой не даём, пока первый не выдан или не отменён. */
+    hasPendingFree(userId: number): boolean {
+      return !!selectPendingFree.get(userId)
+    },
+    /**
+     * Меняет статус. При «Выдан» начисляет штампы (бесплатный кофе закрывает круг +1).
+     * Повторное нажатие ничего не делает, поэтому штампы не задвоятся.
+     */
+    setStatus(id: number, status: OrderStatus): { ok: true; order: OrderRow; stamps: number } | { ok: false; order?: OrderRow } {
+      return db.transaction(() => {
+        const order = this.getOrder(id)
+        if (!order || !NEXT[order.status].includes(status)) return { ok: false as const, order }
+        updateStatus.run(status, id)
+        let stamps = this.getStamps(order.userId)
+        if (status === 'issued' && order.userId) {
+          stamps += (order.useFreeCoffee ? 1 : 0) + order.stampsEarned
+          upsertStamps.run(order.userId, stamps)
+        }
+        return { ok: true as const, order: { ...order, status }, stamps }
+      })()
     },
     listOrders(userId: number): OrderRow[] {
       return (selectOrders.all(userId) as any[]).map(rowToOrder)
