@@ -3,7 +3,7 @@ import { api, type NewOrder, type Order } from '../lib/api'
 import { loyaltyState, stampsForOrder } from '../lib/loyalty'
 import { rub } from '../lib/money'
 import { pickupSlots } from '../lib/slots'
-import { currentUser, haptic, inTelegram, showBackButton, showMainButton } from '../lib/telegram'
+import { currentUser, haptic, inTelegram, showAlert, showBackButton, showMainButton } from '../lib/telegram'
 import { cartTotal, linePrice } from '../state/cart'
 import { useCart } from '../state/CartContext'
 import type { Menu } from '../types/menu'
@@ -57,6 +57,8 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       dispatch({ type: 'clear' })
       haptic('success')
       onDone(saved)
+    } catch {
+      showAlert('Не получилось отправить заказ. Закройте и снова откройте мини-апп, потом попробуйте ещё раз.')
     } finally {
       setBusy(false)
     }
