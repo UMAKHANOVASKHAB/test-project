@@ -17,7 +17,9 @@ COPY --from=build /app/apps/api/package.json apps/api/
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/web/dist apps/web/dist
+# сервер считает цены по тому же меню, что и мини-апп
+COPY --from=build /app/apps/web/src/data/menu.json apps/web/src/data/menu.json
 # Railway запрещает VOLUME в Dockerfile: диск подключается в настройках сервиса (Volume → /data)
-ENV PORT=3000 WEB_DIST=/app/apps/web/dist DB_FILE=/data/ninebar.db
+ENV PORT=3000 WEB_DIST=/app/apps/web/dist MENU_FILE=/app/apps/web/src/data/menu.json DB_FILE=/data/ninebar.db
 EXPOSE 3000
 CMD ["node", "apps/api/dist/index.js"]

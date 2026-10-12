@@ -1,3 +1,5 @@
+import { initData } from './telegram'
+
 /**
  * Слой данных. Сейчас localApi (localStorage) для демо без сервера.
  * Когда появится бэк, VITE_API_URL переключит на remoteApi без правок экранов.
@@ -81,14 +83,18 @@ export const localApi: Api = {
 
 export function remoteApi(baseUrl: string): Api {
   const json = async <T,>(path: string, init?: RequestInit): Promise<T> => {
-    const r = await fetch(`${baseUrl}${path}`, { headers: { 'Content-Type': 'application/json' }, ...init })
+    const auth = initData()
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    // кто заказывает, сервер узнаёт из подписи Telegram, а не из userId в запросе
+    if (auth) headers.Authorization = `tma ${auth}`
+    const r = await fetch(`${baseUrl}${path}`, { ...init, headers })
     if (!r.ok) throw new Error(`API ${r.status}`)
     return (await r.json()) as T
   }
   return {
     createOrder: (o, stampsEarned) => json('/api/orders', { method: 'POST', body: JSON.stringify({ ...o, stampsEarned }) }),
-    getStamps: async (userId) => (await json<{ stamps: number }>(`/api/loyalty/${userId}`)).stamps,
-    listOrders: (userId) => json(`/api/orders?userId=${userId}`),
+    getStamps: async () => (await json<{ stamps: number }>('/api/loyalty')).stamps,
+    listOrders: () => json('/api/orders'),
   }
 }
 
