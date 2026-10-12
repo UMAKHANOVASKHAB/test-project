@@ -25,7 +25,10 @@ export function ordersRouter(db: Db, notifier: Notifier, menu: Menu) {
     const v = validateOrder(req.body)
     if (!v.ok) return res.status(400).json({ error: v.error })
     const stamps = db.getStamps(user.id)
-    const p = priceOrder(menu, req.body.lines, !!req.body.useFreeCoffee, stamps)
+    // штампы списываются при выдаче, поэтому второй бесплатный до выдачи первого не даём
+    const wantFree = !!req.body.useFreeCoffee
+    if (wantFree && db.hasPendingFree(user.id)) return res.status(400).json({ error: 'free coffee not available' })
+    const p = priceOrder(menu, req.body.lines, wantFree, stamps)
     if (!p.ok) return res.status(400).json({ error: p.error })
     const order = db.createOrder(
       { userId: user.id, userName: user.name, lines: p.order.lines, total: p.order.total, pickupAt: v.pickupAt, comment: v.comment, useFreeCoffee: p.order.useFreeCoffee },

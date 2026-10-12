@@ -3,7 +3,7 @@ import { rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { backupName, isSqliteFile } from '../backup.js'
-import type { Db, OrderRow } from '../db/index.js'
+import type { Db, OrderRow, OrderStatus } from '../db/index.js'
 
 const ADMIN_KEY = 'admin_chat_id'
 
@@ -21,8 +21,15 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     )
   })
 
-  // Кто получает заказы: первый, кто напишет /admin, или ADMIN_CHAT_ID из .env
+  // Кто получает заказы. Если задан ADMIN_CHAT_ID, перехватить заказы командой нельзя.
+  // Без переменной чат закрепляет только первый, кто напишет /admin
   bot.command('admin', async (ctx) => {
+    if (process.env.ADMIN_CHAT_ID) {
+      const mine = String(ctx.chat.id) === process.env.ADMIN_CHAT_ID.trim()
+      return void (await ctx.reply(mine ? 'Заказы уже приходят в этот чат.' : 'Получатель заказов задан в настройках сервера.'))
+    }
+    const current = db.getSetting(ADMIN_KEY)
+    if (current && current !== String(ctx.chat.id)) return void (await ctx.reply('Получатель заказов уже назначен.'))
     db.setSetting(ADMIN_KEY, String(ctx.chat.id))
     await ctx.reply(`Готово. Заказы будут приходить в этот чат (id ${ctx.chat.id}).`)
   })
@@ -83,24 +90,67 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     }, 1000)
   })
 
-  async function notifyOrder(o: OrderRow) {
-    const to = adminChatId()
-    if (!to) return false
+  function orderText(o: OrderRow) {
     const lines = o.lines
       .map((l) => {
         const parts = [l.title, l.variant, ...l.addons].filter(Boolean).join(' · ')
         return `• ${parts}${l.qty > 1 ? ` ×${l.qty}` : ''} — ${l.price} ₽`
       })
       .join('\n')
-    const text =
+    return (
       `🧾 <b>Заказ №${o.id}</b> · заберут в <b>${o.pickupAt}</b>\n` +
       `👤 ${escapeHtml(o.userName)}\n\n` +
       `${escapeHtml(lines)}\n\n` +
       (o.useFreeCoffee ? `🎁 Бесплатный кофе по карте\n` : '') +
       (o.comment ? `💬 ${escapeHtml(o.comment)}\n` : '') +
-      `\n<b>Итого: ${o.total} ₽</b> · оплата при получении`
-    await bot.api.sendMessage(to, text, { parse_mode: 'HTML' })
+      `\n<b>Итого: ${o.total} ₽</b> · оплата при получении` +
+      (STATUS_LINE[o.status] ? `\n\n${STATUS_LINE[o.status]}` : '')
+    )
+  }
+
+  // Кнопки под заказом у бариста. Штампы гостю начисляются только по «Выдан»
+  function orderKeyboard(o: OrderRow) {
+    if (o.status === 'issued' || o.status === 'cancelled') return undefined
+    const kb = new InlineKeyboard()
+    if (o.status === 'new') kb.text('☕️ Готов', `st:ready:${o.id}`)
+    return kb.text('🤝 Выдан', `st:issued:${o.id}`).row().text('✖️ Отменить', `st:cancelled:${o.id}`)
+  }
+
+  async function notifyOrder(o: OrderRow) {
+    const to = adminChatId()
+    if (!to) return false
+    await bot.api.sendMessage(to, orderText(o), { parse_mode: 'HTML', reply_markup: orderKeyboard(o) })
     return true
+  }
+
+  bot.callbackQuery(/^st:(ready|issued|cancelled):(\d+)$/, async (ctx) => {
+    // нажимать может только чат бариста: кнопки в пересланном сообщении не сработают
+    if (String(ctx.chat?.id) !== String(adminChatId())) return void (await ctx.answerCallbackQuery({ text: 'Нет доступа' }))
+    const status = ctx.match[1] as OrderStatus
+    const r = db.setStatus(Number(ctx.match[2]), status)
+    if (!r.ok) {
+      await ctx.answerCallbackQuery({ text: 'Статус уже изменён' })
+      // обновляем сообщение, если его состояние отстало от базы (например, нажали дважды)
+      if (r.order) await ctx.editMessageText(orderText(r.order), { parse_mode: 'HTML', reply_markup: orderKeyboard(r.order) }).catch(() => {})
+      return
+    }
+    await ctx.answerCallbackQuery({ text: STATUS_LINE[status] })
+    await ctx.editMessageText(orderText(r.order), { parse_mode: 'HTML', reply_markup: orderKeyboard(r.order) }).catch(() => {})
+    await notifyStatus(r.order, r.stamps)
+  })
+
+  async function notifyStatus(o: OrderRow, stamps: number) {
+    if (!o.userId) return
+    const text =
+      o.status === 'ready'
+        ? `☕️ Заказ №${o.id} готов, можно забирать.`
+        : o.status === 'issued'
+          ? `🤝 Заказ №${o.id} выдан, приятного аппетита!` +
+            (o.stampsEarned ? ` Начислено штампов: ${o.stampsEarned}, всего на карте: ${stamps}.` : '')
+          : `✖️ Заказ №${o.id} отменён. Если это ошибка, напишите или позвоните нам.`
+    await bot.api.sendMessage(o.userId, text).catch(() => {
+      /* гость не начинал диалог с ботом */
+    })
   }
 
   async function notifyGuest(o: OrderRow) {
@@ -108,7 +158,7 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     try {
       await bot.api.sendMessage(
         o.userId,
-        `✅ Заказ №${o.id} принят. Будет готов к ${o.pickupAt}. Покажите это сообщение бариста.`,
+        `✅ Заказ №${o.id} принят. Будет готов к ${o.pickupAt}. Покажите это сообщение бариста. Штампы начислятся, когда заберёте заказ.`,
       )
     } catch {
       /* гость не начинал диалог с ботом: Telegram не даст написать первым */
@@ -123,6 +173,12 @@ export function createBot(token: string, db: Db, webappUrl: string) {
   }
 
   return { bot, notifyOrder, notifyGuest, sendBackup }
+}
+
+const STATUS_LINE: Partial<Record<OrderStatus, string>> = {
+  ready: '☕️ Готов, ждёт гостя',
+  issued: '🤝 Выдан',
+  cancelled: '✖️ Отменён',
 }
 
 function escapeHtml(s: string) {
