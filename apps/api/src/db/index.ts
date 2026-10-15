@@ -70,14 +70,18 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
   const cols = (db.prepare(`PRAGMA table_info(orders)`).all() as { name: string }[]).map((c) => c.name)
   if (!cols.includes('status')) db.exec(`ALTER TABLE orders ADD COLUMN status TEXT NOT NULL DEFAULT 'issued'`)
   if (!cols.includes('stamps_earned')) db.exec(`ALTER TABLE orders ADD COLUMN stamps_earned INTEGER NOT NULL DEFAULT 0`)
+  // Ключ от мини-аппа: повторная отправка того же заказа (двойное нажатие, повтор при плохой связи) не создаёт второй
+  if (!cols.includes('client_key')) db.exec(`ALTER TABLE orders ADD COLUMN client_key TEXT`)
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS orders_client_key ON orders(user_id, client_key) WHERE client_key IS NOT NULL`)
 
   // Нумерация заказов с 101, чтобы бариста не путал с количеством
   db.exec(`INSERT OR IGNORE INTO sqlite_sequence(name, seq) VALUES ('orders', 100)`)
 
   const insertOrder = db.prepare(`
-    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, status, stamps_earned, created_at)
-    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, 'new', @stampsEarned, @createdAt)
+    INSERT INTO orders (user_id, user_name, lines, total, pickup_at, comment, use_free, status, stamps_earned, client_key, created_at)
+    VALUES (@userId, @userName, @lines, @total, @pickupAt, @comment, @useFree, 'new', @stampsEarned, @clientKey, @createdAt)
   `)
+  const selectByKey = db.prepare(`SELECT * FROM orders WHERE user_id = ? AND client_key = ?`)
   const selectOrder = db.prepare(`SELECT * FROM orders WHERE id = ?`)
   const updateStatus = db.prepare(`UPDATE orders SET status = ? WHERE id = ?`)
   const selectPendingFree = db.prepare(`SELECT 1 FROM orders WHERE user_id = ? AND use_free = 1 AND status IN ('new', 'ready') LIMIT 1`)
@@ -109,7 +113,7 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
       return (selectStamps.get(userId) as { stamps: number } | undefined)?.stamps ?? 0
     },
     /** Заказ без штампов: штампы приходят, только когда бариста нажмёт «Выдан». */
-    createOrder(o: Omit<OrderRow, 'id' | 'createdAt' | 'status' | 'stampsEarned'>, stampsEarned: number): OrderRow {
+    createOrder(o: Omit<OrderRow, 'id' | 'createdAt' | 'status' | 'stampsEarned'>, stampsEarned: number, clientKey: string | null = null): OrderRow {
       const createdAt = new Date().toISOString()
       const res = insertOrder.run({
         userId: o.userId,
@@ -120,9 +124,15 @@ export function openDb(file = process.env.DB_FILE ?? 'data/ninebar.db') {
         comment: o.comment,
         useFree: o.useFreeCoffee ? 1 : 0,
         stampsEarned,
+        clientKey,
         createdAt,
       })
       return { ...o, id: Number(res.lastInsertRowid), status: 'new', stampsEarned, createdAt }
+    },
+    /** Заказ, уже созданный этим гостем с этим ключом */
+    findByKey(userId: number, clientKey: string): OrderRow | undefined {
+      const r = selectByKey.get(userId, clientKey)
+      return r ? rowToOrder(r) : undefined
     },
     getOrder(id: number): OrderRow | undefined {
       const r = selectOrder.get(id)

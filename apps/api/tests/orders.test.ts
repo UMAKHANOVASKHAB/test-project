@@ -181,6 +181,30 @@ describe('API /api/orders', () => {
     expect(db.listOrders(0)).toHaveLength(0)
   })
 
+  it('двойное нажатие «Заказать» с тем же ключом создаёт один заказ', async () => {
+    const { db, call } = await start()
+    const auth = signInitData({ id: 42 })
+    const body = { lines: [capp], pickupAt: '12:15', clientKey: 'k-1234567890' }
+    const [a, b] = await Promise.all([call('/api/orders', { auth, body }), call('/api/orders', { auth, body })])
+    expect(a.status).toBe(200)
+    expect(b.status).toBe(200)
+    expect((await a.json()).id).toBe((await b.json()).id)
+    expect(db.listOrders(42)).toHaveLength(1)
+    // новый ключ означает новый заказ
+    await call('/api/orders', { auth, body: { ...body, clientKey: 'k-0987654321' } })
+    expect(db.listOrders(42)).toHaveLength(2)
+  })
+
+  it('чужой ключ не открывает чужой заказ', async () => {
+    const { db, call } = await start()
+    const body = { lines: [capp], pickupAt: '12:15', clientKey: 'k-1234567890' }
+    const mine = await (await call('/api/orders', { auth: signInitData({ id: 42 }), body })).json()
+    const other = await (await call('/api/orders', { auth: signInitData({ id: 43 }), body })).json()
+    expect(other.id).not.toBe(mine.id)
+    expect(other.userId).toBe(43)
+    expect(db.listOrders(43)).toHaveLength(1)
+  })
+
   it('второй бесплатный кофе до выдачи первого не принимается', async () => {
     const { db, call } = await start()
     for (let i = 0; i < 5; i++) {
