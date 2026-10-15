@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
-import { api, type NewOrder, type Order } from '../lib/api'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { api, newClientKey, type NewOrder, type Order } from '../lib/api'
 import { loyaltyState, stampsForOrder } from '../lib/loyalty'
 import { rub } from '../lib/money'
 import { pickupSlots } from '../lib/slots'
-import { currentUser, haptic, inTelegram, showAlert, showBackButton, showMainButton } from '../lib/telegram'
+import { currentUser, haptic, inTelegram, setMainButtonBusy, showAlert, showBackButton, showMainButton } from '../lib/telegram'
 import { cartTotal, linePrice } from '../state/cart'
 import { useCart } from '../state/CartContext'
 import type { Menu } from '../types/menu'
+import { Icon } from '../components/Icon'
 
 export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: Order) => void; onBack: () => void }) {
   const { cart, dispatch } = useCart()
@@ -17,9 +18,14 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
   const [stamps, setStamps] = useState(0)
   const [useFree, setUseFree] = useState(false)
   const [busy, setBusy] = useState(false)
+  // ref, а не только state: кнопка Telegram держит старую функцию, и без ref второе нажатие прошло бы
+  const busyRef = useRef(false)
+  // один ключ на заказ: повтор после ошибки сети сервер узнает и второй заказ не создаст
+  const keyRef = useRef(newClientKey())
 
   useEffect(() => {
-    api.getStamps(user.id).then(setStamps)
+    // штампы не загрузились: просто не предлагаем бесплатный кофе, заказать всё равно можно
+    api.getStamps(user.id).then(setStamps).catch(() => setStamps(0))
   }, [user.id])
 
   const loyalty = loyaltyState(stamps, menu.shop.loyalty.stampsForFree)
@@ -32,8 +38,10 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
   const closed = slots.length === 0
 
   const submit = async () => {
-    if (empty || closed || busy) return
+    if (empty || closed || busyRef.current) return
+    busyRef.current = true
     setBusy(true)
+    setMainButtonBusy(true)
     const order: NewOrder = {
       userId: user.id,
       userName: user.name,
@@ -50,17 +58,21 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       pickupAt: slot,
       comment: comment.trim(),
       useFreeCoffee: useFree && canUseFree,
+      clientKey: keyRef.current,
     }
     const earned = stampsForOrder(order.lines, menu.shop.loyalty.countsCategories)
     try {
       const saved = await api.createOrder(order, earned)
+      keyRef.current = newClientKey()
       dispatch({ type: 'clear' })
       haptic('success')
       onDone(saved)
     } catch {
-      showAlert('Не получилось отправить заказ. Закройте и снова откройте мини-апп, потом попробуйте ещё раз.')
+      showAlert('Заказ не отправился. Проверьте интернет и нажмите «Заказать» ещё раз: второй заказ не появится.')
     } finally {
+      busyRef.current = false
       setBusy(false)
+      setMainButtonBusy(false)
     }
   }
 
@@ -75,7 +87,7 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
     return (
       <div className="screen screen--center">
         <div className="empty">
-          <div className="empty__icon">🛍</div>
+          <Icon name="bag" size={56} className="empty__icon" />
           <div className="empty__title">Пока пусто</div>
           <div className="empty__text">Добавьте что-нибудь из меню</div>
           <button className="btn btn--primary" onClick={onBack}>В меню</button>
@@ -98,9 +110,9 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
               </div>
             </div>
             <div className="qty">
-              <button className="qty__btn" onClick={() => dispatch({ type: 'dec', key: l.key })}>−</button>
-              <span className="qty__n">{l.qty}</span>
-              <button className="qty__btn" onClick={() => dispatch({ type: 'inc', key: l.key })}>+</button>
+              <button className="qty__btn" aria-label={`Убрать одну: ${l.item.title}`} onClick={() => dispatch({ type: 'dec', key: l.key })}><Icon name="minus" size={18} /></button>
+              <span className="qty__n" aria-live="polite">{l.qty}</span>
+              <button className="qty__btn" aria-label={`Добавить ещё: ${l.item.title}`} onClick={() => dispatch({ type: 'inc', key: l.key })}><Icon name="plus" size={18} /></button>
             </div>
             <div className="line__price">{rub(linePrice(l))}</div>
           </div>
@@ -110,7 +122,8 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       {canUseFree && (
         <label className="free">
           <input type="checkbox" checked={useFree} onChange={(e) => setUseFree(e.target.checked)} />
-          <span>🎁 Использовать бесплатный кофе (−{rub(Math.min(...coffeeLines.map((l) => l.variant.price)))})</span>
+          <Icon name="gift" size={22} className="free__icon" />
+          <span>Использовать бесплатный кофе (−{rub(Math.min(...coffeeLines.map((l) => l.variant.price)))})</span>
         </label>
       )}
 
@@ -130,8 +143,10 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       </div>
 
       <div className="block">
-        <div className="block__label">Комментарий бариста</div>
+        <label className="block__label" htmlFor="comment">Комментарий бариста</label>
         <textarea
+          id="comment"
+          maxLength={300}
           className="input"
           rows={2}
           placeholder="Например: без сахара, поменьше льда"

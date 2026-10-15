@@ -24,6 +24,10 @@ export function ordersRouter(db: Db, notifier: Notifier, menu: Menu) {
     if (!user.id) return res.status(401).json({ error: 'open in telegram' })
     const v = validateOrder(req.body)
     if (!v.ok) return res.status(400).json({ error: v.error })
+    // повтор того же заказа (двойное нажатие): отдаём уже созданный, бариста второй раз не уведомляем
+    const key = typeof req.body.clientKey === 'string' && /^[\w-]{8,64}$/.test(req.body.clientKey) ? req.body.clientKey : null
+    const existing = key ? db.findByKey(user.id, key) : undefined
+    if (existing) return res.json(existing)
     const stamps = db.getStamps(user.id)
     // штампы списываются при выдаче, поэтому второй бесплатный до выдачи первого не даём
     const wantFree = !!req.body.useFreeCoffee
@@ -33,6 +37,7 @@ export function ordersRouter(db: Db, notifier: Notifier, menu: Menu) {
     const order = db.createOrder(
       { userId: user.id, userName: user.name, lines: p.order.lines, total: p.order.total, pickupAt: v.pickupAt, comment: v.comment, useFreeCoffee: p.order.useFreeCoffee },
       p.order.stampsEarned,
+      key,
     )
     // уведомления не должны ломать ответ гостю
     notifier.notifyOrder(order).catch((e) => console.error('notifyOrder', e))

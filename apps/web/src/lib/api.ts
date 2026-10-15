@@ -22,6 +22,18 @@ export interface NewOrder {
   pickupAt: string // "HH:MM"
   comment: string
   useFreeCoffee: boolean
+  /** ключ попытки: повторная отправка того же заказа не создаёт второй */
+  clientKey?: string
+}
+
+/** Случайный ключ для заказа. randomUUID есть не во всех старых WebView, поэтому запасной вариант */
+export function newClientKey(): string {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  } catch {
+    /* небезопасный контекст */
+  }
+  return `k-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
 }
 
 export interface Order extends NewOrder {

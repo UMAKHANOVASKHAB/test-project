@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Header } from '../components/Header'
 import { CategoryTabs } from '../components/CategoryTabs'
 import { ItemRow } from '../components/ItemRow'
@@ -15,6 +15,8 @@ export function MenuScreen({ menu }: { menu: Menu }) {
   const [active, setActive] = useState(categories[0].id)
   const [picking, setPicking] = useState<MenuItem | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+  // стабильная функция: иначе шторка на каждой перерисовке заново забирала бы фокус и кнопку «Назад»
+  const closeSheet = useCallback(() => setPicking(null), [])
 
   const byCategory = useMemo(() => {
     const m = new Map<string, MenuItem[]>()
@@ -103,7 +105,7 @@ export function MenuScreen({ menu }: { menu: Menu }) {
         )
       })}
       <div className="spacer" />
-      {picking && <VariantSheet item={picking} addons={addonsFor(picking)} onAdd={(v, a) => add(picking, v, a)} onClose={() => setPicking(null)} />}
+      {picking && <VariantSheet item={picking} addons={addonsFor(picking)} onAdd={(v, a) => add(picking, v, a)} onClose={closeSheet} />}
     </div>
   )
 }

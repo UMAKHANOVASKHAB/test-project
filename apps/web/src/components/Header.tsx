@@ -3,7 +3,7 @@ import type { Shop } from '../types/menu'
 export function Header({ shop }: { shop: Shop }) {
   return (
     <header className="header">
-      <div className="logo" aria-label={shop.name}>
+      <div className="logo" role="img" aria-label={shop.name}>
         <span>B</span>
         <span className="logo__a">
           A<span className="logo__tail" />

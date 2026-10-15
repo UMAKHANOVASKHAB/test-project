@@ -13,6 +13,10 @@
 ### Frontend Design (Anthropic, Apache 2.0)
 Навык `.claude/skills/frontend-design/`: как делать дизайн без шаблонного «ИИ-вида». Применять при создании нового интерфейса или переделке дизайна: сначала короткий план (палитра 4–6 цветов, шрифты, сетка, принципы), проверка плана на шаблонность, потом код и самопроверка по скриншотам.
 
+### Impeccable (Paul Bakaus, Apache 2.0, v4.6.0)
+Навык `.claude/skills/impeccable/`: дизайн и проверка вёрстки. Команды через `/impeccable`: `init` (один раз, создаёт PRODUCT.md), `audit`, `critique`, `polish`, `adapt`, `harden` и другие. Для сдачи сайта: init → audit → polish.
+Скрипт `scripts/impeccable` при первом запуске скачивает программу-проверялку с GitHub (сверяет sha256) в `~/.impeccable/`. Отключить статистику: `IMPECCABLE_NO_TELEMETRY=1`. Хуки плагина не ставились.
+
 ### Graphify
 Навык `/graphify` в `.claude/skills/graphify/`. Строит граф знаний по коду, чтобы не перечитывать файлы.
 Требует пакет: `pip install graphifyy`. Когда в проекте появится код, запусти `/graphify .`, потом задавай вопросы по коду через `graphify query "<вопрос>"`. После изменений: `graphify update .`.

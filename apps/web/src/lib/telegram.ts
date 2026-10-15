@@ -51,6 +51,13 @@ export function showMainButton(text: string, onClick: () => void) {
   }
 }
 
+/** Пока заказ отправляется: крутилка на кнопке Telegram, повторное нажатие не срабатывает */
+export function setMainButtonBusy(busy: boolean) {
+  if (!inTelegram) return
+  if (busy) WebApp.MainButton.showProgress(false).disable()
+  else WebApp.MainButton.hideProgress().enable()
+}
+
 export function showBackButton(onClick: () => void) {
   if (!inTelegram) return () => {}
   WebApp.BackButton.show()
