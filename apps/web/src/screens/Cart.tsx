@@ -7,6 +7,7 @@ import { currentUser, haptic, inTelegram, setMainButtonBusy, showAlert, showBack
 import { cartTotal, linePrice } from '../state/cart'
 import { useCart } from '../state/CartContext'
 import type { Menu } from '../types/menu'
+import { Icon } from '../components/Icon'
 
 export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: Order) => void; onBack: () => void }) {
   const { cart, dispatch } = useCart()
@@ -86,7 +87,7 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
     return (
       <div className="screen screen--center">
         <div className="empty">
-          <div className="empty__icon">🛍</div>
+          <Icon name="bag" size={56} className="empty__icon" />
           <div className="empty__title">Пока пусто</div>
           <div className="empty__text">Добавьте что-нибудь из меню</div>
           <button className="btn btn--primary" onClick={onBack}>В меню</button>
@@ -109,9 +110,9 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
               </div>
             </div>
             <div className="qty">
-              <button className="qty__btn" aria-label={`Убрать одну: ${l.item.title}`} onClick={() => dispatch({ type: 'dec', key: l.key })}>−</button>
+              <button className="qty__btn" aria-label={`Убрать одну: ${l.item.title}`} onClick={() => dispatch({ type: 'dec', key: l.key })}><Icon name="minus" size={18} /></button>
               <span className="qty__n" aria-live="polite">{l.qty}</span>
-              <button className="qty__btn" aria-label={`Добавить ещё: ${l.item.title}`} onClick={() => dispatch({ type: 'inc', key: l.key })}>+</button>
+              <button className="qty__btn" aria-label={`Добавить ещё: ${l.item.title}`} onClick={() => dispatch({ type: 'inc', key: l.key })}><Icon name="plus" size={18} /></button>
             </div>
             <div className="line__price">{rub(linePrice(l))}</div>
           </div>
@@ -121,7 +122,8 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       {canUseFree && (
         <label className="free">
           <input type="checkbox" checked={useFree} onChange={(e) => setUseFree(e.target.checked)} />
-          <span>🎁 Использовать бесплатный кофе (−{rub(Math.min(...coffeeLines.map((l) => l.variant.price)))})</span>
+          <Icon name="gift" size={22} className="free__icon" />
+          <span>Использовать бесплатный кофе (−{rub(Math.min(...coffeeLines.map((l) => l.variant.price)))})</span>
         </label>
       )}
 

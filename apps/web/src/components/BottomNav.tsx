@@ -1,15 +1,16 @@
 import { cartCount } from '../state/cart'
 import { useCart } from '../state/CartContext'
+import { Icon, type IconName } from './Icon'
 
 export type Tab = 'menu' | 'cart' | 'loyalty'
 
 export function BottomNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
   const { cart } = useCart()
   const n = cartCount(cart)
-  const items: { id: Tab; label: string; icon: string }[] = [
-    { id: 'menu', label: 'Меню', icon: '☕️' },
-    { id: 'cart', label: 'Заказ', icon: '🛍' },
-    { id: 'loyalty', label: 'Штампы', icon: '🎁' },
+  const items: { id: Tab; label: string; icon: IconName }[] = [
+    { id: 'menu', label: 'Меню', icon: 'cup' },
+    { id: 'cart', label: 'Заказ', icon: 'bag' },
+    { id: 'loyalty', label: 'Штампы', icon: 'gift' },
   ]
   return (
     <nav className="nav">
@@ -22,7 +23,7 @@ export function BottomNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => v
           onClick={() => onChange(it.id)}
         >
           <span className="nav__icon" aria-hidden>
-            {it.icon}
+            <Icon name={it.icon} />
             {it.id === 'cart' && n > 0 && <span className="nav__badge">{n}</span>}
           </span>
           <span aria-hidden>{it.label}</span>

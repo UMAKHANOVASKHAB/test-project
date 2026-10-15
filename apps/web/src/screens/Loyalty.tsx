@@ -44,7 +44,7 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
           {state !== 'ready'
             ? state === 'loading' ? 'Загружаем штампы…' : 'Штампы появятся, когда вернётся связь'
             : s.freeNow
-            ? 'Следующий кофе за наш счёт 🎉'
+            ? 'Следующий кофе за наш счёт'
             : `Ещё ${s.left} ${plural(s.left, 'кофе', 'кофе', 'кофе')} до бесплатного`}
         </div>
         <div className="loyalty-card__hint">Каждый {menu.shop.loyalty.stampsForFree}-й кофе бесплатно. Штамп за любой кофейный напиток, начисляется, когда заберёте заказ.</div>
