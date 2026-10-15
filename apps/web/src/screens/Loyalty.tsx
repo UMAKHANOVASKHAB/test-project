@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Stamps } from '../components/Stamps'
 import { api, type Order } from '../lib/api'
 import { loyaltyState } from '../lib/loyalty'
@@ -10,22 +10,40 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
   const user = useMemo(currentUser, [])
   const [stamps, setStamps] = useState(0)
   const [orders, setOrders] = useState<Order[]>([])
+  // без этого при плохой связи гость видел «0 штампов» и «заказов не было» и думал, что всё пропало
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  useEffect(() => {
-    api.getStamps(user.id).then(setStamps)
-    api.listOrders(user.id).then(setOrders)
+  const load = useCallback(() => {
+    setState('loading')
+    Promise.all([api.getStamps(user.id), api.listOrders(user.id)])
+      .then(([s, o]) => {
+        setStamps(s)
+        setOrders(o)
+        setState('ready')
+      })
+      .catch(() => setState('error'))
   }, [user.id])
+
+  useEffect(load, [load])
 
   const s = loyaltyState(stamps, menu.shop.loyalty.stampsForFree)
 
   return (
     <div className="screen">
       <h1 className="h1">Карта гостя</h1>
-      <div className="loyalty-card">
+      {state === 'error' && (
+        <div className="notice" role="alert">
+          <div>Не удалось загрузить штампы и заказы. Они не пропали, просто нет связи.</div>
+          <button className="notice__btn" onClick={load}>Повторить</button>
+        </div>
+      )}
+      <div className={`loyalty-card ${state === 'ready' ? '' : 'is-pending'}`} aria-busy={state === 'loading'}>
         <div className="loyalty-card__name">{user.name}</div>
         <Stamps state={s} />
         <div className="loyalty-card__text">
-          {s.freeNow
+          {state !== 'ready'
+            ? state === 'loading' ? 'Загружаем штампы…' : 'Штампы появятся, когда вернётся связь'
+            : s.freeNow
             ? 'Следующий кофе за наш счёт 🎉'
             : `Ещё ${s.left} ${plural(s.left, 'кофе', 'кофе', 'кофе')} до бесплатного`}
         </div>
@@ -33,7 +51,8 @@ export function LoyaltyScreen({ menu }: { menu: Menu }) {
       </div>
 
       <h2 className="h2">Мои заказы</h2>
-      {orders.length === 0 && <div className="muted">Заказов пока не было</div>}
+      {state === 'loading' && <div className="muted">Загружаем…</div>}
+      {state === 'ready' && orders.length === 0 && <div className="muted">Заказов пока не было</div>}
       <div className="list">
         {orders.map((o) => (
           <div key={o.id} className="order">

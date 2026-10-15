@@ -6,7 +6,11 @@
   --accent: #3a2a22;
   --accent-ink: #ffffff;
   --line: #e9dfd3;
-  --hit: #c9553d;
+  --hit: #ad4430;
+  --cold: #4f6d84;
+  --gold: #f2c94c;
+  --free-bg: #fff7e0;
+  --espresso-2: #5a4236;
   --radius: 16px;
   --nav-h: 64px;
   --display: "Manrope", -apple-system, system-ui, sans-serif;
@@ -16,6 +20,7 @@
 html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.35 "Manrope", -apple-system, system-ui, sans-serif; }
 button, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
 .app { min-height: 100dvh; }
 .screen { padding: 16px 16px 0; }
@@ -40,10 +45,10 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .group.is-active { background: var(--bg); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(60, 40, 30, 0.12); }
 .tabs { display: flex; gap: 18px; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
-.tab { flex: none; padding: 4px 0 6px; font-size: 15px; color: var(--ink-2); white-space: nowrap; border-bottom: 2px solid transparent; }
+.tab { flex: none; padding: 12px 0 10px; font-size: 15px; color: var(--ink-2); white-space: nowrap; border-bottom: 2px solid transparent; }
 .tab.is-active { color: var(--ink); border-bottom-color: var(--ink); }
 
-.section { scroll-margin-top: 118px; padding-top: 22px; }
+.section { scroll-margin-top: 132px; padding-top: 22px; }
 .section__title { font-family: var(--display); font-weight: 400; font-size: 27px; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.01em; margin: 6px 0 12px; }
 .section__vol { font-size: 17px; text-transform: none; color: var(--ink-2); }
 .section__note { color: var(--ink-2); font-size: 14px; margin: 8px 0 0; }
@@ -54,7 +59,7 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .row__name { font-size: 17px; line-height: 1.3; }
 .row__hit { font-size: 10px; letter-spacing: 0.03em; color: var(--hit); margin-right: 3px; vertical-align: super; }
 .row__vol { font-size: 11px; color: var(--ink-2); margin-left: 3px; }
-.row__cold { font-size: 13px; color: #6f8aa0; }
+.row__cold { font-size: 13px; color: var(--cold); }
 .row__price { font-size: 17px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .row__add { align-self: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center; font-size: 17px; line-height: 1; color: var(--ink); }
 .row__add.is-in { background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; }
@@ -91,12 +96,12 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .line__meta { color: var(--ink-2); font-size: 13px; }
 .line__price { font-weight: 700; min-width: 64px; text-align: right; }
 .qty { display: flex; align-items: center; gap: 4px; background: var(--bg); border-radius: 10px; padding: 2px; }
-.qty__btn { width: 30px; height: 30px; border-radius: 8px; font-size: 18px; background: var(--card); }
+.qty__btn { width: 40px; height: 40px; border-radius: 9px; font-size: 18px; background: var(--card); }
 .qty__n { min-width: 22px; text-align: center; font-weight: 600; }
-.free { display: flex; gap: 10px; align-items: center; margin-top: 14px; padding: 12px; background: #fff7e0; border-radius: var(--radius); font-weight: 500; }
+.free { display: flex; gap: 10px; align-items: center; margin-top: 14px; padding: 12px; background: var(--free-bg); border-radius: var(--radius); font-weight: 500; }
 .free input { width: 20px; height: 20px; accent-color: var(--accent); }
 .block { margin-top: 18px; }
-.block__label { font-size: 13px; color: var(--ink-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+.block__label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
 .input { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 12px; resize: none; }
 .total { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
 .total__row { display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; }
@@ -118,18 +123,23 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .done__line--total { font-weight: 700; border-top: 1px dashed var(--line); margin-top: 8px; padding-top: 10px; font-size: 17px; }
 
 /* Лояльность */
-.loyalty-card { background: linear-gradient(135deg, #3a2a22, #5a4236); color: #fff; border-radius: 22px; padding: 20px; }
+.loyalty-card { background: linear-gradient(135deg, var(--accent), var(--espresso-2)); transition: opacity 0.2s; color: #fff; border-radius: 22px; padding: 20px; }
 .loyalty-card__name { font-size: 14px; opacity: 0.8; }
 .loyalty-card__text { font-size: 18px; font-weight: 600; margin-top: 14px; }
 .loyalty-card__hint { font-size: 13px; opacity: 0.75; margin-top: 4px; }
 .stamps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 16px; }
 .stamp { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.4); display: grid; place-items: center; font-size: 22px; }
 .stamp.is-filled { background: rgba(255,255,255,0.18); border-style: solid; }
-.stamp.is-gift { border-color: #f2c94c; }
-.stamp.is-ready { background: #f2c94c; animation: pulse 1.2s infinite; }
+.loyalty-card.is-pending { opacity: 0.7; }
+.stamp.is-gift { border-color: var(--gold); }
+.stamp.is-ready { background: var(--gold); animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { transform: scale(1.08); } }
 .order { background: var(--card); border-radius: var(--radius); padding: 12px; }
 .order__head { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+
+/* Сообщение об ошибке связи */
+.notice { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: var(--free-bg); border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; }
+.notice__btn { flex: none; min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 
 /* Нижняя навигация */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--card); border-top: 1px solid var(--line); display: flex; z-index: 10; }
@@ -137,3 +147,10 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .nav__btn.is-active { color: var(--accent); font-weight: 600; }
 .nav__icon { font-size: 22px; position: relative; }
 .nav__badge { position: absolute; top: -4px; right: -12px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--hit); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 5px; }
+
+/* Кто отключил анимацию в настройках телефона: шторка просто появляется, подарок не пульсирует, а подсвечен рамкой */
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+  .stamp.is-ready { animation: none; box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.5); }
+  .loyalty-card { transition: none; }
+}

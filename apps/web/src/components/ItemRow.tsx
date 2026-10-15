@@ -14,7 +14,7 @@ export function ItemRow({
 }) {
   const volume = showVolume ? volumeLabel(item) : ''
   return (
-    <button className={`row ${item.desc ? 'row--food' : ''}`} onClick={onAdd} aria-label={`Добавить ${item.title}`}>
+    <button className={`row ${item.desc ? 'row--food' : ''}`} onClick={onAdd} aria-label={`${item.title}${volume ? `, ${volume}` : ''}, ${priceLabel(item)}${inCart ? `, в заказе ${inCart}` : ''}. Добавить`}>
       <span className="row__name">
         {item.hit && <sup className="row__hit">хит</sup>}
         {item.title}

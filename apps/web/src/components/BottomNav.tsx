@@ -14,12 +14,18 @@ export function BottomNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => v
   return (
     <nav className="nav">
       {items.map((it) => (
-        <button key={it.id} className={`nav__btn ${tab === it.id ? 'is-active' : ''}`} onClick={() => onChange(it.id)}>
-          <span className="nav__icon">
+        <button
+          key={it.id}
+          className={`nav__btn ${tab === it.id ? 'is-active' : ''}`}
+          aria-current={tab === it.id ? 'page' : undefined}
+          aria-label={it.id === 'cart' && n > 0 ? `${it.label}, позиций: ${n}` : it.label}
+          onClick={() => onChange(it.id)}
+        >
+          <span className="nav__icon" aria-hidden>
             {it.icon}
             {it.id === 'cart' && n > 0 && <span className="nav__badge">{n}</span>}
           </span>
-          <span>{it.label}</span>
+          <span aria-hidden>{it.label}</span>
         </button>
       ))}
     </nav>

@@ -1,10 +1,15 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { Order } from '../lib/api'
 import { rub } from '../lib/money'
 import { inTelegram, showMainButton } from '../lib/telegram'
 
 export function DoneScreen({ order, onClose }: { order: Order; onClose: () => void }) {
-  useEffect(() => showMainButton('В меню', onClose), [onClose])
+  // второе касание двойного нажатия «Заказать» не должно сразу закрыть экран с номером заказа
+  const shownAt = useRef(Date.now())
+  const close = useCallback(() => {
+    if (Date.now() - shownAt.current > 800) onClose()
+  }, [onClose])
+  useEffect(() => showMainButton('В меню', close), [close])
   return (
     <div className="screen screen--center">
       <div className="done">
@@ -22,7 +27,7 @@ export function DoneScreen({ order, onClose }: { order: Order; onClose: () => vo
           ))}
           <div className="done__line done__line--total"><span>Итого</span><span>{rub(order.total)}</span></div>
         </div>
-        {!inTelegram && <button className="btn btn--primary" onClick={onClose}>В меню</button>}
+        {!inTelegram && <button className="btn btn--primary" onClick={close}>В меню</button>}
       </div>
     </div>
   )
