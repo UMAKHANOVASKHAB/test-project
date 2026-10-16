@@ -1,0 +1,65 @@
+# Уведомления в Telegram, когда кто-то (кроме владельца) меняет репозиторий.
+# Секреты: Settings → Secrets and variables → Actions:
+#   TELEGRAM_BOT_TOKEN  токен бота от @BotFather
+#   TELEGRAM_CHAT_ID    твой chat id (узнать у @userinfobot)
+name: Telegram notify
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    types: [opened, reopened, closed, ready_for_review]
+  member:
+    types: [added]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    # Свои изменения владельца не присылаем, чтобы не было лишнего шума
+    if: github.actor != github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "Секреты TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не заданы, пропускаю"
+            exit 0
+          fi
+          E="$GITHUB_EVENT_PATH"
+          REPO="$GITHUB_REPOSITORY"
+          WHO="$GITHUB_ACTOR"
+          case "$GITHUB_EVENT_NAME" in
+            push)
+              BRANCH="${GITHUB_REF#refs/heads/}"
+              COUNT=$(jq '.commits | length' "$E")
+              LIST=$(jq -r '.commits[-10:][] | "• " + (.message | split("\n")[0]) + "\n  файлы: +" + ((.added|length)|tostring) + " ~" + ((.modified|length)|tostring) + " -" + ((.removed|length)|tostring)' "$E")
+              URL=$(jq -r '.compare' "$E")
+              TEXT=$(printf '🔔 %s сохранил изменения в %s\nВетка: %s\nКоммитов: %s\n\n%s\n\nПосмотреть: %s' "$WHO" "$REPO" "$BRANCH" "$COUNT" "$LIST" "$URL")
+              ;;
+            pull_request)
+              ACTION=$(jq -r '.action' "$E")
+              MERGED=$(jq -r '.pull_request.merged' "$E")
+              TITLE=$(jq -r '.pull_request.title' "$E")
+              URL=$(jq -r '.pull_request.html_url' "$E")
+              case "$ACTION" in
+                opened|reopened|ready_for_review) WHAT="открыл Pull Request, ждёт твоей проверки" ;;
+                closed) [ "$MERGED" = "true" ] && WHAT="Pull Request влит в код" || WHAT="Pull Request закрыт без слияния" ;;
+                *) WHAT="$ACTION" ;;
+              esac
+              TEXT=$(printf '🔔 %s: %s\n«%s»\n\n%s' "$WHO" "$WHAT" "$TITLE" "$URL")
+              ;;
+            member)
+              NEW=$(jq -r '.member.login' "$E")
+              TEXT=$(printf '🔔 %s теперь соавтор репозитория %s' "$NEW" "$REPO")
+              ;;
+          esac
+          curl -sS -o /dev/null -w "telegram: %{http_code}\n" \
+            "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true"
