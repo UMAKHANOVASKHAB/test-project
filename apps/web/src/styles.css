@@ -37,7 +37,7 @@ textarea, input { caret-color: var(--accent); }
 .logo__a { position: relative; display: inline-grid; place-items: center; width: 58px; height: 58px; border: 3px solid var(--ink); border-radius: 50%; font-size: 36px; }
 .logo__tail { position: absolute; right: 3px; bottom: -18px; width: 3px; height: 26px; background: var(--ink); transform: rotate(35deg); transform-origin: top; }
 .header__info { margin-top: 18px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
-.header__phone { color: var(--ink); text-decoration: none; white-space: nowrap; }
+.header__phone { display: inline-block; padding: 12px 4px; margin: -12px -4px; color: var(--ink); text-decoration: none; white-space: nowrap; }
 
 /* Переключатель Напитки / Еда и разделы */
 .tabs-wrap { position: sticky; top: 0; z-index: 5; margin: 0 -16px; padding: 10px 16px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
