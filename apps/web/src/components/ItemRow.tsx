@@ -18,7 +18,7 @@ export function ItemRow({
   const head = item.title.slice(0, cut)
   const last = item.title.slice(cut)
   return (
-    <button className={`row ${item.desc ? 'row--food' : ''}`} onClick={onAdd} aria-label={`${item.title}${volume ? `, ${volume}` : ''}, ${priceLabel(item)}${inCart ? `, в заказе ${inCart}` : ''}. Добавить`}>
+    <button className={`row ${item.desc ? 'row--food' : ''}`} onClick={onAdd} aria-label={`${item.title}${item.cold ? ', холодный' : ''}${volume ? `, ${volume}` : ''}, ${priceLabel(item)}${inCart ? `, в заказе ${inCart}` : ''}. Добавить`}>
       <span className="row__name">
         {item.hit && <sup className="row__hit">хит</sup>}
         {head}
