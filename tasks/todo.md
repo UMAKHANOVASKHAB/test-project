@@ -2,7 +2,7 @@
 
 ## Этап 1. Фронт (демо)
 
-- [x] T1. Каркас `apps/web`: Vite + React + TS, workspaces в корне, ESLint, Vitest.
+- [x] T1. Каркас `apps/web`: Vite + React + TS, workspaces в корне, ESLint, Vitest. (Конфиг ESLint добавлен позже: до этого `npm run lint` падал.)
   - Acceptance: `npm run dev` поднимается, `npm test` проходит пустой тест.
   - Verify: `npm run build`.
   - Files: package.json, apps/web/package.json, vite.config.ts, tsconfig.json.

@@ -8,26 +8,48 @@ export interface Notifier {
   notifyGuest(o: any): Promise<void>
 }
 
-/** Проверяет то, что заказ не может посчитать сервер: время и комментарий. */
-export function validateOrder(body: any): { ok: true; pickupAt: string; comment: string } | { ok: false; error: string } {
-  if (!body || typeof body !== 'object') return { ok: false, error: 'bad body' }
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(body.pickupAt ?? '')) return { ok: false, error: 'bad pickup time' }
-  return { ok: true, pickupAt: body.pickupAt, comment: String(body.comment ?? '').slice(0, 300) }
+const toMin = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+
+/** Минуты от полуночи по часам кофейни, а не сервера: Railway живёт по UTC */
+export function minutesInZone(now: Date, timeZone: string) {
+  return toMin(new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now))
 }
 
-export function ordersRouter(db: Db, notifier: Notifier, menu: Menu) {
+// слоты в мини-аппе считаются при открытии корзины: даём запас, если гость думал над заказом
+const LATE_GRACE_MIN = 15
+
+/**
+ * Проверяет то, что заказ не может посчитать сервер: время и комментарий.
+ * Если передать hours и nowMin, время должно попасть в часы работы и не уйти в прошлое.
+ */
+export function validateOrder(
+  body: any,
+  hours?: { open: string; close: string },
+  nowMin?: number,
+): { ok: true; pickupAt: string; comment: string } | { ok: false; error: string } {
+  if (!body || typeof body !== 'object') return { ok: false, error: 'bad body' }
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(body.pickupAt ?? '')) return { ok: false, error: 'bad pickup time' }
+  const t = toMin(body.pickupAt)
+  if (hours && (t < toMin(hours.open) || t > toMin(hours.close))) return { ok: false, error: 'pickup time closed' }
+  if (nowMin !== undefined && t < nowMin - LATE_GRACE_MIN) return { ok: false, error: 'pickup time passed' }
+  const comment = typeof body.comment === 'string' ? body.comment.slice(0, 300) : ''
+  return { ok: true, pickupAt: body.pickupAt, comment }
+}
+
+export function ordersRouter(db: Db, notifier: Notifier, menu: Menu, now = () => new Date()) {
   const r = Router()
 
   r.post('/api/orders', async (req, res) => {
     const user: TgUser = res.locals.user
     // без подписи Telegram любой мог бы засыпать бариста фальшивыми заказами через curl
     if (!user.id) return res.status(401).json({ error: 'open in telegram' })
-    const v = validateOrder(req.body)
-    if (!v.ok) return res.status(400).json({ error: v.error })
-    // повтор того же заказа (двойное нажатие): отдаём уже созданный, бариста второй раз не уведомляем
-    const key = typeof req.body.clientKey === 'string' && /^[\w-]{8,64}$/.test(req.body.clientKey) ? req.body.clientKey : null
+    // повтор того же заказа (двойное нажатие): отдаём уже созданный, бариста второй раз не уведомляем.
+    // До проверки времени: повтор через полчаса не должен получить «время прошло» вместо своего заказа
+    const key = typeof req.body?.clientKey === 'string' && /^[\w-]{8,64}$/.test(req.body.clientKey) ? req.body.clientKey : null
     const existing = key ? db.findByKey(user.id, key) : undefined
     if (existing) return res.json(existing)
+    const v = validateOrder(req.body, menu.shop.hours, minutesInZone(now(), menu.shop.timezone ?? 'Europe/Moscow'))
+    if (!v.ok) return res.status(400).json({ error: v.error })
     const stamps = db.getStamps(user.id)
     // штампы списываются при выдаче, поэтому второй бесплатный до выдачи первого не даём
     const wantFree = !!req.body.useFreeCoffee

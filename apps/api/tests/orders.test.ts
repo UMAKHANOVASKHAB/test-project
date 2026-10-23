@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { telegramAuth, verifyInitData } from '../src/auth.js'
 import { openDb } from '../src/db/index.js'
 import { loadMenu, priceOrder } from '../src/pricing.js'
-import { ordersRouter, validateOrder } from '../src/routes/orders.js'
+import { minutesInZone, ordersRouter, validateOrder } from '../src/routes/orders.js'
 
 const menu = loadMenu('../web/src/data/menu.json')
 const TOKEN = '123456:TEST_TOKEN_FOR_TESTS_ONLY_abcdefghijk'
@@ -68,6 +68,20 @@ describe('validateOrder', () => {
   it('отклоняет кривое время', () => {
     expect(validateOrder({ pickupAt: 'скоро' }).ok).toBe(false)
     expect(validateOrder({ pickupAt: '12:15' }).ok).toBe(true)
+  })
+  it('время только в часы работы и не в прошлом', () => {
+    const hours = { open: '08:00', close: '23:00' }
+    expect(validateOrder({ pickupAt: '03:00' }, hours, 0)).toEqual({ ok: false, error: 'pickup time closed' })
+    expect(validateOrder({ pickupAt: '23:15' }, hours, 0)).toEqual({ ok: false, error: 'pickup time closed' })
+    // сейчас 12:30: 12:00 уже прошло, 12:15 ещё в запасе на раздумья
+    expect(validateOrder({ pickupAt: '12:00' }, hours, 12 * 60 + 30)).toEqual({ ok: false, error: 'pickup time passed' })
+    expect(validateOrder({ pickupAt: '12:15' }, hours, 12 * 60 + 30).ok).toBe(true)
+  })
+  it('комментарий только строкой', () => {
+    expect(validateOrder({ pickupAt: '12:15', comment: { x: 1 } })).toMatchObject({ ok: true, comment: '' })
+  })
+  it('часы считаются по Москве, а не по UTC сервера', () => {
+    expect(minutesInZone(new Date('2026-10-23T07:05:00Z'), 'Europe/Moscow')).toBe(10 * 60 + 5)
   })
 })
 
@@ -135,7 +149,8 @@ describe('API /api/orders', () => {
     const app = express()
     app.use(express.json())
     app.use('/api', telegramAuth(TOKEN))
-    app.use(ordersRouter(db, { notifyOrder: async () => true, notifyGuest: async () => {} }, menu))
+    // часы фиксированы на 10:00 по Москве, иначе тесты с 12:15 падали бы вечером
+    app.use(ordersRouter(db, { notifyOrder: async () => true, notifyGuest: async () => {} }, menu, () => new Date('2026-10-23T07:00:00Z')))
     const server = app.listen(0)
     close = () => { server.close(); db.close() }
     const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`

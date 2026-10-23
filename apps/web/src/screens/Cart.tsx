@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, newClientKey, type NewOrder, type Order } from '../lib/api'
+import { api, ApiError, newClientKey, type NewOrder, type Order } from '../lib/api'
+import { orderErrorText } from '../lib/orderError'
 import { loyaltyState, stampsForOrder } from '../lib/loyalty'
 import { rub } from '../lib/money'
 import { pickupSlots } from '../lib/slots'
@@ -12,8 +13,11 @@ import { Icon } from '../components/Icon'
 export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: Order) => void; onBack: () => void }) {
   const { cart, dispatch } = useCart()
   const user = useMemo(currentUser, [])
-  const slots = useMemo(() => pickupSlots(new Date(), menu.shop.hours.open, menu.shop.hours.close, menu.shop.pickupStepMin), [menu])
-  const [slot, setSlot] = useState(slots[0] ?? '')
+  // слоты пересчитываются, если сервер сказал, что выбранное время уже прошло
+  const [slotsAt, setSlotsAt] = useState(() => new Date())
+  const slots = useMemo(() => pickupSlots(slotsAt, menu.shop.hours.open, menu.shop.hours.close, menu.shop.pickupStepMin), [menu, slotsAt])
+  const [picked, setSlot] = useState('')
+  const slot = slots.includes(picked) ? picked : (slots[0] ?? '')
   const [comment, setComment] = useState('')
   const [stamps, setStamps] = useState(0)
   const [useFree, setUseFree] = useState(false)
@@ -67,8 +71,9 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       dispatch({ type: 'clear' })
       haptic('success')
       onDone(saved)
-    } catch {
-      showAlert('Заказ не отправился. Проверьте интернет и нажмите «Заказать» ещё раз: второй заказ не появится.')
+    } catch (e) {
+      if (e instanceof ApiError && e.code.startsWith('pickup time')) setSlotsAt(new Date())
+      showAlert(orderErrorText(e))
     } finally {
       busyRef.current = false
       setBusy(false)
@@ -175,3 +180,4 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
     </div>
   )
 }
+

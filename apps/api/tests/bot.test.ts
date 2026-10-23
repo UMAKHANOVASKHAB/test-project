@@ -75,4 +75,36 @@ describe('кнопки бариста', () => {
     expect(db.getSetting('admin_chat_id')).toBeUndefined()
     expect(calls.at(-1)!.payload.text).toContain('задан в настройках')
   })
+
+  it('ADMIN_CHAT_ID с пробелом или переносом строки после вставки с телефона', async () => {
+    const { db, press } = setup()
+    process.env.ADMIN_CHAT_ID = ` ${ADMIN}\n`
+    const o = db.createOrder(order, 1)
+    await press(`st:issued:${o.id}`)
+    expect(db.getOrder(o.id)!.status).toBe('issued')
+  })
+
+  it('ошибка Telegram в обработчике не останавливает бота', async () => {
+    const db = openDb(':memory:')
+    const { bot } = createBot('123456:' + 'x'.repeat(35), db, '')
+    bot.botInfo = { id: 1, is_bot: true, first_name: 'bot', username: 'bot' } as any
+    // как «query is too old» или «bot was blocked by the user»
+    bot.api.config.use(async () => { throw new Error('Bad Request: query is too old') })
+    const update = {
+      update_id: 3,
+      callback_query: {
+        id: 'q', data: 'st:issued:1', chat_instance: 'c',
+        from: { id: 999, is_bot: false, first_name: 'X' },
+        message: { message_id: 1, date: 0, chat: { id: 999, type: 'private', first_name: 'X' }, text: 'заказ' },
+      },
+    }
+    const err = console.error
+    console.error = () => {}
+    try {
+      // handleUpdates вызывается при long polling; без bot.catch здесь была бы остановка бота и исключение
+      await expect((bot as any).handleUpdates([update])).resolves.toBeUndefined()
+    } finally {
+      console.error = err
+    }
+  })
 })

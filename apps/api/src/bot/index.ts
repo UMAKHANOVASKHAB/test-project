@@ -10,7 +10,13 @@ const ADMIN_KEY = 'admin_chat_id'
 export function createBot(token: string, db: Db, webappUrl: string) {
   const bot = new Bot(token)
 
-  const adminChatId = () => process.env.ADMIN_CHAT_ID || db.getSetting(ADMIN_KEY)
+  // Без своего обработчика grammY при любой ошибке в команде (гость заблокировал бота, старая кнопка)
+  // останавливает бота насовсем, а сайт продолжает работать и Railway ничего не перезапускает
+  bot.catch((err) => console.error(`Ошибка бота на обновлении ${err.ctx.update.update_id}:`, err.error))
+
+  // пробелы и перенос строки при вставке с телефона иначе ломают сравнение с id чата
+  const envAdmin = () => (process.env.ADMIN_CHAT_ID ?? '').trim()
+  const adminChatId = () => envAdmin() || db.getSetting(ADMIN_KEY)
 
   bot.command('start', async (ctx) => {
     const kb = webappUrl ? new InlineKeyboard().webApp('☕️ Открыть меню', webappUrl) : undefined
@@ -24,8 +30,8 @@ export function createBot(token: string, db: Db, webappUrl: string) {
   // Кто получает заказы. Если задан ADMIN_CHAT_ID, перехватить заказы командой нельзя.
   // Без переменной чат закрепляет только первый, кто напишет /admin
   bot.command('admin', async (ctx) => {
-    if (process.env.ADMIN_CHAT_ID) {
-      const mine = String(ctx.chat.id) === process.env.ADMIN_CHAT_ID.trim()
+    if (envAdmin()) {
+      const mine = String(ctx.chat.id) === envAdmin()
       return void (await ctx.reply(mine ? 'Заказы уже приходят в этот чат.' : 'Получатель заказов задан в настройках сервера.'))
     }
     const current = db.getSetting(ADMIN_KEY)
@@ -39,8 +45,8 @@ export function createBot(token: string, db: Db, webappUrl: string) {
   })
 
   // Копии и восстановление только для владельца из переменной ADMIN_CHAT_ID: /admin тут не считается
-  const isOwner = (chatId: number) => !!process.env.ADMIN_CHAT_ID && String(chatId) === process.env.ADMIN_CHAT_ID.trim()
-  const backupChatId = () => (process.env.BACKUP_CHAT_ID || process.env.ADMIN_CHAT_ID || '').trim()
+  const isOwner = (chatId: number) => !!envAdmin() && String(chatId) === envAdmin()
+  const backupChatId = () => (process.env.BACKUP_CHAT_ID ?? '').trim() || envAdmin()
 
   async function sendBackup(note = 'Ежедневная копия') {
     const to = backupChatId()
@@ -118,7 +124,11 @@ export function createBot(token: string, db: Db, webappUrl: string) {
 
   async function notifyOrder(o: OrderRow) {
     const to = adminChatId()
-    if (!to) return false
+    if (!to) {
+      // иначе гость видит «заказ принят», а бариста о нём не узнает
+      console.error(`Заказ №${o.id} никому не отправлен: не задан ADMIN_CHAT_ID и никто не написал /admin`)
+      return false
+    }
     await bot.api.sendMessage(to, orderText(o), { parse_mode: 'HTML', reply_markup: orderKeyboard(o) })
     return true
   }

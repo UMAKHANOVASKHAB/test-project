@@ -1,4 +1,7 @@
+import { ApiError } from './apiError'
 import { initData } from './telegram'
+
+export { ApiError }
 
 /**
  * Слой данных. Сейчас localApi (localStorage) для демо без сервера.
@@ -102,7 +105,10 @@ export function remoteApi(baseUrl: string): Api {
     // кто заказывает, сервер узнаёт из подписи Telegram, а не из userId в запросе
     if (auth) headers.Authorization = `tma ${auth}`
     const r = await fetch(`${baseUrl}${path}`, { ...init, headers })
-    if (!r.ok) throw new Error(`API ${r.status}`)
+    if (!r.ok) {
+      const code = await r.json().then((b) => String(b?.error ?? ''), () => '')
+      throw new ApiError(r.status, code)
+    }
     return (await r.json()) as T
   }
   return {

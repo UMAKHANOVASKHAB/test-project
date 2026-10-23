@@ -1,10 +1,11 @@
 # Один контейнер: собирает мини-апп и сервер, сервер отдаёт и API, и статику
 FROM node:22-slim AS build
 WORKDIR /app
-COPY package.json ./
+# lock-файл и npm ci: на сервер ставятся ровно те версии, что проверены тестами, а не свежие с npm
+COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
-RUN npm install --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 COPY . .
 ENV VITE_API_URL=
 RUN npm run build -w apps/web && npm run build -w apps/api

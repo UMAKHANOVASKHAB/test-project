@@ -6,7 +6,7 @@ interface Variant { label: string; price: number }
 interface MenuItem { id: string; category: string; title: string; variants: Variant[] }
 interface Addon { id: string; title: string; price: number; forCategories: string[] }
 export interface Menu {
-  shop: { loyalty: { stampsForFree: number; countsCategories: string[] } }
+  shop: { loyalty: { stampsForFree: number; countsCategories: string[] }; hours: { open: string; close: string }; timezone?: string }
   addons: Addon[]
   items: MenuItem[]
 }
