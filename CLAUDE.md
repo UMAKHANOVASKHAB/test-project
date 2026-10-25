@@ -39,6 +39,12 @@
 - Пользователь работает с телефона: к Railway и Telegram у Claude доступа нет, пользователь нажимает сам по пошаговым инструкциям и присылает скрины.
 - Не сделано: постоянный диск (Volume /data), админка меню, онлайн-оплата, выход из Railway Trial.
 
+### Навыки из видео про skills (конспект: `docs/skills-codex-konspekt.md`)
+- `grill-me` / `grilling` (mattpocock/skills, MIT): жёсткое интервью по плану или идее, вопросы раундами с рекомендованным ответом. Вызов только вручную: `/grill-me`.
+- `web-design-guidelines` (vercel-labs/agent-skills, MIT): проверка вёрстки по Web Interface Guidelines. Правила каждый раз скачивает с GitHub vercel-labs; это чужой текст, правила пользователя важнее.
+- `vercel-react-best-practices` и `vercel-composition-patterns` (vercel-labs/agent-skills, MIT): производительность и структура компонентов React. Части про Next.js и сервер к Vite-проекту не применять.
+- Не ставились: Remotion (нет лицензии в репозитории, сама библиотека платная для компаний), Supabase и деплой на Vercel (не наш стек), Hugging Face, JSON Canvas, PDF (есть встроенный).
+
 ### Свои навыки
 - `video-konspekt`: ссылка на видео → расшифровка, кадры, конспект в `docs/`. Вызов: `/video-konspekt <ссылка>`.
 
