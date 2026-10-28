@@ -32,6 +32,13 @@
 - Маркетинг (coreyhaines31/marketingskills, MIT): 24 из 52 навыков (`copywriting`, `seo-audit`, `pricing`, `offers`, `social` и др.). Контекст продукта хранится в `.agents/product-marketing.md`. Обманные приёмы давления (ложная срочность, скрытые условия) не использовать.
 - `last30days` (mvanhorn, MIT): что обсуждали за 30 дней в Reddit, X, YouTube и др. Без ключей работает частично; на чтение cookies браузера согласия не давать без спроса пользователя.
 
+### YouTube agent (Jake Schincariol, MIT, конспект: `docs/youtube-agent-konspekt.md`)
+11 навыков в `.claude/skills/yt-*`: `/yt-script` (сценарий по 21 формуле хуков), `/yt-package` (заголовок и обложка), `/yt-edit` (список склеек по расшифровке), `/yt-comment`, `/yt-plan`, `/yt-viral` (что заходит в нише), `/yt-retention`, `/yt-shorts`, `/yt-seo`, `/yt-chapters`, `/yt-audit`.
+- Голос автора хранится в `docs/youtube-voice.md`. Перед работой: `mkdir -p ~/.claude/youtube && cp docs/youtube-voice.md ~/.claude/youtube/voice.md`.
+- Ничего не публикуют: отдают текст, публикует пользователь. Цифры не выдумывать.
+- Скрипты-проверялки понимают только латиницу: русские хуки и заголовки оценивать вручную по правилам из конспекта.
+- Кликбейт только правдивый, без ложной срочности; чужие видео разбирать как образец, не копировать.
+
 ## Текущий проект: мини-апп 9 bar coffee (запущен)
 Перед любой работой прочитай `docs/runbook.md`: там где что лежит, переменные Railway и что делать при сбоях.
 - Бот @ninebar_coffee_05bot, сервер Railway (сервис ninebar-coffee), адрес https://ninebar-coffee-production-4d6a.up.railway.app
@@ -53,6 +60,7 @@
 - `docs/halal-code-konspekt.md`: конспект гайда по продаже сайтов, использовать для обучения по урокам.
 - `docs/agents-5-schem-konspekt.md`: 5 схем работы агентов, `/goal`, workflows, уроки.
 - `docs/mimic-konspekt.md`: конспект про Mimic и чек-лист безопасности API (сервер не верит клиенту). Применять к каждому новому сайту и боту.
+- `docs/youtube-agent-konspekt.md`: 11 навыков YouTube agent, правила сценария, упаковки, удержания.
 
 ## Правила общения
 - Отвечать по-русски, без тире в обычной речи.
