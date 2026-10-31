@@ -35,6 +35,15 @@
 - Команда ECC `/code-review` перекрывает встроенную `/code-review`. Для встроенного многоагентного ревью есть `/review` (Agent Skills).
 - Команды `/multi-*`, `/astra-review`, `council-multi-model` отправляют код во внешние модели (Codex/OpenAI): запускать только с согласия пользователя. `/harness-audit` требует npm-пакет `@iarna/toml`.
 
+### Монтаж видео: 5 навыков (ставятся скриптом, в репозиторий не копировались)
+Когда пользователь присылает видео или просит монтаж, сначала запусти `bash scripts/install-video-skills.sh` (около 15 секунд, версии закреплены по коммитам). Скрипт ставит в `~/.claude/skills/`:
+- `ghost-editor` (kurbaitaev/ghost-editor, MIT): сырое видео «на камеру» в готовый рилс: лучшие дубли, субтитры, эффекты, 7 стилей. Сделан под Mac, на Linux не проверен. Ключ Gemini по желанию (кадры уходят в Google).
+- `ffmpeg-skill` (kajisho5/ffmpeg-skill, MIT): 42 инструмента на FFmpeg: резка паузами, субтитры, вертикаль, звук. Только Python и ffmpeg, без ключей.
+- `hyperframes` и ещё 7 навыков HeyGen (heygen-com/hyperframes, Apache 2.0): анимация кодом (HTML в видео) через `npx hyperframes`.
+- `shorts` (AgriciDaniel/claude-shorts, MIT): длинное видео в шортсы с титрами (faster-whisper, Remotion).
+- OpenMontage (calesthio/OpenMontage, AGPL-3.0) кладётся в `~/OpenMontage`: это отдельный проект «чужой реф в твой ролик», открывать его папку как проект.
+Python-пакеты (whisper и др.) ставить при первой задаче, предупредив пользователя о размере. Платные ключи (ElevenLabs, генерация видео) только с согласия пользователя. В видео без лиц и без музыки там, где пользователь этого не хочет: правила для B-roll писать в `people-rules.json` ghost-editor только со слов пользователя.
+
 ### 5 навыков из видео «команда из Claude» (конспект: `docs/skills-video-konspekt.md`)
 - `humanizer` (blader/humanizer, MIT): убрать штампы нейросети из текста.
 - Документы Word/Excel/PowerPoint/PDF: встроенные навыки Anthropic `docx`, `xlsx`, `pptx`, `pdf` (в проект не копировались, закрытая лицензия).
