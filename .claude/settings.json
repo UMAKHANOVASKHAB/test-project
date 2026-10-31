@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/delete-guard.py\""
+          }
+        ]
+      }
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "claude-mods": {
+      "source": {
+        "source": "directory",
+        "path": "./claude-mods"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "cache-timer@claude-mods": true
+  }
+}

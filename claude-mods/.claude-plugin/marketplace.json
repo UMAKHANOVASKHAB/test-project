@@ -1,0 +1,7 @@
+{
+  "name": "claude-mods",
+  "owner": { "name": "umakhanovaskhab" },
+  "plugins": [
+    { "name": "cache-timer", "source": "./cache-timer", "description": "Полоска над полем ввода: сколько осталось жить кэшу промпта и кнопка сжать чат" }
+  ]
+}
