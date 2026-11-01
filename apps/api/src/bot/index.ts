@@ -7,8 +7,20 @@ import type { Db, OrderRow, OrderStatus } from '../db/index.js'
 
 const ADMIN_KEY = 'admin_chat_id'
 
-export function createBot(token: string, db: Db, webappUrl: string) {
+export interface BotOptions {
+  /** каждый N-й кофе бесплатно, берётся из menu.json */
+  stampsForFree?: number
+}
+
+export function createBot(token: string, db: Db, webappUrl: string, opts: BotOptions = {}) {
   const bot = new Bot(token)
+  const stampsForFree = opts.stampsForFree ?? 6
+
+  // Без своего обработчика grammY при любой ошибке (сбой сети Telegram, гость заблокировал бота)
+  // останавливает опрос, и кнопки бариста перестают работать до перезапуска сервиса
+  bot.catch((err) => {
+    console.error(`Ошибка бота в обновлении ${err.ctx?.update?.update_id}:`, err.error)
+  })
 
   const adminChatId = () => process.env.ADMIN_CHAT_ID || db.getSetting(ADMIN_KEY)
 
@@ -16,7 +28,7 @@ export function createBot(token: string, db: Db, webappUrl: string) {
     const kb = webappUrl ? new InlineKeyboard().webApp('☕️ Открыть меню', webappUrl) : undefined
     await ctx.reply(
       'Ассаляму алейкум! Это 9 bar coffee, ул. Леваневского, 11.\n\n' +
-        'Здесь можно посмотреть меню, заказать заранее и забрать без очереди. Каждый 6-й кофе бесплатно.',
+        `Здесь можно посмотреть меню, заказать заранее и забрать без очереди. Каждый ${stampsForFree}-й кофе бесплатно.`,
       { reply_markup: kb },
     )
   })

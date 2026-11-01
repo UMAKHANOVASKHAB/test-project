@@ -18,9 +18,12 @@ const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN
 const webappUrl = (process.env.WEBAPP_URL ?? '').trim() || (railwayDomain ? `https://${railwayDomain}` : '')
 
 const db = openDb()
+const menu = loadMenu()
 // Без токена поднимаем только сайт мини-аппа, чтобы сервис не падал
-const created = token ? createBot(token, db, webappUrl) : null
+const created = token ? createBot(token, db, webappUrl, { stampsForFree: menu.shop.loyalty.stampsForFree }) : null
 if (!created) console.error('BOT_TOKEN не задан: работает только сайт, бот выключен')
+// без переменной получателя заказов закрепит первый, кто напишет /admin, а база в /tmp стирается при деплое
+if (created && !process.env.ADMIN_CHAT_ID) console.error('ВНИМАНИЕ: ADMIN_CHAT_ID не задан. Задайте его в Railway → Variables, иначе заказы может перехватить чужой /admin')
 const bot = created?.bot
 const notifyOrder = created?.notifyOrder ?? (async () => false)
 const notifyGuest = created?.notifyGuest ?? (async () => {})
@@ -32,11 +35,27 @@ if (created) {
 }
 
 const app = express()
-app.use(cors())
+app.disable('x-powered-by')
+// Мини-апп отдаётся с этого же адреса, поэтому чужим сайтам доступ к API не нужен.
+// Без WEBAPP_URL и Railway (локальная разработка на vite) разрешаем всем
+const webappOrigin = (() => {
+  try {
+    return webappUrl ? new URL(webappUrl).origin : ''
+  } catch {
+    console.error(`WEBAPP_URL не похож на адрес: ${webappUrl}`)
+    return ''
+  }
+})()
+app.use(cors(webappOrigin ? { origin: webappOrigin } : undefined))
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  next()
+})
 app.use(express.json({ limit: '64kb' }))
 app.get('/health', (_req, res) => res.json({ ok: true }))
 app.use('/api', telegramAuth(token))
-app.use(ordersRouter(db, { notifyOrder, notifyGuest }, loadMenu()))
+app.use(ordersRouter(db, { notifyOrder, notifyGuest }, menu))
 
 // Отдаём собранный мини-апп с того же адреса, чтобы для демо хватило одного туннеля
 const webDist = resolve(process.env.WEB_DIST ?? '../web/dist')

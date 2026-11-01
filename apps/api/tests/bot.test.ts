@@ -63,6 +63,34 @@ describe('кнопки бариста', () => {
     expect(db.getStamps(GUEST)).toBe(0)
   })
 
+  it('ошибка в обработчике не останавливает бота', async () => {
+    process.env.ADMIN_CHAT_ID = String(ADMIN)
+    const db = openDb(':memory:')
+    const { bot } = createBot('123456:' + 'x'.repeat(35), db, '')
+    bot.botInfo = { id: 1, is_bot: true, first_name: 'bot', username: 'bot' } as any
+    // Telegram не ответил: любой вызов API падает
+    bot.api.config.use(async () => { throw new Error('network down') })
+    const update = {
+      update_id: 3,
+      message: { message_id: 3, date: 0, chat: { id: 7, type: 'private', first_name: 'X' }, from: { id: 7, is_bot: false, first_name: 'X' }, text: '/start', entities: [{ type: 'bot_command', offset: 0, length: 6 }] },
+    } as any
+    // так бот получает сообщения при опросе: без bot.catch здесь grammY вызывает bot.stop() и пробрасывает ошибку
+    await expect(bot.handleUpdates([update])).resolves.toBeUndefined()
+  })
+
+  it('/start берёт число для бесплатного кофе из меню', async () => {
+    const db = openDb(':memory:')
+    const { bot } = createBot('123456:' + 'x'.repeat(35), db, '', { stampsForFree: 8 })
+    bot.botInfo = { id: 1, is_bot: true, first_name: 'bot', username: 'bot' } as any
+    const sent: any[] = []
+    bot.api.config.use(async (_p, method, payload) => (sent.push({ method, payload }), { ok: true, result: { message_id: 1, date: 0, chat: { id: 7, type: 'private' } } } as any))
+    await bot.handleUpdate({
+      update_id: 4,
+      message: { message_id: 4, date: 0, chat: { id: 7, type: 'private', first_name: 'X' }, from: { id: 7, is_bot: false, first_name: 'X' }, text: '/start', entities: [{ type: 'bot_command', offset: 0, length: 6 }] },
+    } as any)
+    expect(sent.find((c) => c.method === 'sendMessage')!.payload.text).toContain('Каждый 8-й кофе бесплатно')
+  })
+
   it('/admin не перехватывает заказы, если задан ADMIN_CHAT_ID', async () => {
     const { db, calls } = setup()
     const { bot } = createBot('123456:' + 'x'.repeat(35), db, '')

@@ -9,7 +9,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { telegramAuth, verifyInitData } from '../src/auth.js'
 import { openDb } from '../src/db/index.js'
 import { loadMenu, priceOrder } from '../src/pricing.js'
-import { ordersRouter, validateOrder } from '../src/routes/orders.js'
+import { checkPickup, minutesInZone } from '../src/hours.js'
+import { ordersRouter, validateOrder, type RouterOptions } from '../src/routes/orders.js'
 
 const menu = loadMenu('../web/src/data/menu.json')
 const TOKEN = '123456:TEST_TOKEN_FOR_TESTS_ONLY_abcdefghijk'
@@ -23,6 +24,8 @@ function signInitData(user: object, token = TOKEN, authDate = Math.floor(Date.no
   return params.toString()
 }
 
+// 12:00 по Москве (09:00 UTC): заказы в тестах на 12:15 попадают в часы работы
+const NOON_MSK = new Date('2026-11-01T09:00:00Z')
 const capp = { itemId: 'cappuccino', variant: '300 мл', addons: ['Сироп'], qty: 1 }
 
 describe('verifyInitData', () => {
@@ -68,6 +71,23 @@ describe('validateOrder', () => {
   it('отклоняет кривое время', () => {
     expect(validateOrder({ pickupAt: 'скоро' }).ok).toBe(false)
     expect(validateOrder({ pickupAt: '12:15' }).ok).toBe(true)
+  })
+})
+
+describe('время самовывоза', () => {
+  const hours = { open: '08:00', close: '23:00' }
+  it('считает время по Москве, а не по часам сервера', () => {
+    expect(minutesInZone(NOON_MSK, 'Europe/Moscow')).toBe(12 * 60)
+    expect(minutesInZone(new Date('2026-11-01T21:30:00Z'), 'Europe/Moscow')).toBe(30)
+  })
+  it('принимает время в часы работы и не раньше текущего', () => {
+    expect(checkPickup('12:15', hours, 'Europe/Moscow', NOON_MSK)).toBe('ok')
+    expect(checkPickup('12:00', hours, 'Europe/Moscow', NOON_MSK)).toBe('ok')
+  })
+  it('отклоняет прошедшее время и время вне часов работы', () => {
+    expect(checkPickup('11:45', hours, 'Europe/Moscow', NOON_MSK)).toBe('past')
+    expect(checkPickup('03:00', hours, 'Europe/Moscow', NOON_MSK)).toBe('closed')
+    expect(checkPickup('23:15', hours, 'Europe/Moscow', NOON_MSK)).toBe('closed')
   })
 })
 
@@ -130,12 +150,12 @@ describe('API /api/orders', () => {
   let close = () => {}
   afterEach(() => close())
 
-  async function start() {
-    const db = openDb(':memory:')
+  async function start(opts: RouterOptions = {}, database = openDb(':memory:')) {
+    const db = database
     const app = express()
     app.use(express.json())
     app.use('/api', telegramAuth(TOKEN))
-    app.use(ordersRouter(db, { notifyOrder: async () => true, notifyGuest: async () => {} }, menu))
+    app.use(ordersRouter(db, { notifyOrder: async () => true, notifyGuest: async () => {} }, menu, { now: () => NOON_MSK, ...opts }))
     const server = app.listen(0)
     close = () => { server.close(); db.close() }
     const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
@@ -216,5 +236,39 @@ describe('API /api/orders', () => {
     expect(first.status).toBe(200)
     const second = await call('/api/orders', { auth, body: { lines: [capp], pickupAt: '12:20', useFreeCoffee: true } })
     expect(second.status).toBe(400)
+  })
+
+  it('отклоняет заказ на прошедшее время и вне часов работы', async () => {
+    const { db, call } = await start()
+    const auth = signInitData({ id: 42 })
+    const past = await call('/api/orders', { auth, body: { lines: [capp], pickupAt: '11:30' } })
+    expect(past.status).toBe(400)
+    expect((await past.json()).error).toBe('pickup time passed')
+    const night = await call('/api/orders', { auth, body: { lines: [capp], pickupAt: '03:00' } })
+    expect((await night.json()).error).toBe('shop closed')
+    expect(db.listOrders(42)).toHaveLength(0)
+  })
+
+  it('не больше 5 заказов за 10 минут, повтор того же заказа не считается', async () => {
+    const { call } = await start({ rateLimit: { max: 2, windowMs: 60_000 } })
+    const auth = signInitData({ id: 42 })
+    const send = (key: string) => call('/api/orders', { auth, body: { lines: [capp], pickupAt: '12:15', clientKey: key } })
+    expect((await send('k-aaaaaaaa1')).status).toBe(200)
+    expect((await send('k-aaaaaaaa1')).status).toBe(200)
+    expect((await send('k-aaaaaaaa2')).status).toBe(200)
+    const third = await send('k-aaaaaaaa3')
+    expect(third.status).toBe(429)
+    // другого гостя ограничение не касается
+    const other = await call('/api/orders', { auth: signInitData({ id: 43 }), body: { lines: [capp], pickupAt: '12:15' } })
+    expect(other.status).toBe(200)
+  })
+
+  it('сбой базы даёт ответ 500, а не роняет сервер', async () => {
+    const db = openDb(':memory:')
+    db.createOrder = () => { throw new Error('SQLITE_FULL') }
+    const { call } = await start({}, db)
+    const r = await call('/api/orders', { auth: signInitData({ id: 42 }), body: { lines: [capp], pickupAt: '12:15' } })
+    expect(r.status).toBe(500)
+    expect((await call('/api/loyalty', { auth: signInitData({ id: 42 }) })).status).toBe(200)
   })
 })
