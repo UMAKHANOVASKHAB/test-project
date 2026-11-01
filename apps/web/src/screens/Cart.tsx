@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, newClientKey, type NewOrder, type Order } from '../lib/api'
+import { api, ApiError, newClientKey, orderErrorText, type NewOrder, type Order } from '../lib/api'
 import { loyaltyState, stampsForOrder } from '../lib/loyalty'
 import { rub } from '../lib/money'
 import { pickupSlots } from '../lib/slots'
 import { currentUser, haptic, inTelegram, setMainButtonBusy, showAlert, showBackButton, showMainButton } from '../lib/telegram'
-import { cartTotal, linePrice } from '../state/cart'
+import { cartTotal, linePrice, MAX_QTY } from '../state/cart'
 import { useCart } from '../state/CartContext'
 import type { Menu } from '../types/menu'
 import { Icon } from '../components/Icon'
@@ -12,8 +12,21 @@ import { Icon } from '../components/Icon'
 export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: Order) => void; onBack: () => void }) {
   const { cart, dispatch } = useCart()
   const user = useMemo(currentUser, [])
-  const slots = useMemo(() => pickupSlots(new Date(), menu.shop.hours.open, menu.shop.hours.close, menu.shop.pickupStepMin), [menu])
+  // часы обновляются раз в полминуты: если корзина долго открыта, прошедшие слоты исчезают
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(t)
+  }, [])
+  const slots = useMemo(
+    () => pickupSlots(now, menu.shop.hours.open, menu.shop.hours.close, menu.shop.pickupStepMin, 10, menu.shop.timezone),
+    [menu, now],
+  )
   const [slot, setSlot] = useState(slots[0] ?? '')
+  // выбранное время прошло: переходим на ближайшее доступное
+  useEffect(() => {
+    if (!slots.includes(slot)) setSlot(slots[0] ?? '')
+  }, [slots, slot])
   const [comment, setComment] = useState('')
   const [stamps, setStamps] = useState(0)
   const [useFree, setUseFree] = useState(false)
@@ -31,6 +44,19 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
   const loyalty = loyaltyState(stamps, menu.shop.loyalty.stampsForFree)
   const coffeeLines = cart.lines.filter((l) => menu.shop.loyalty.countsCategories.includes(l.item.category))
   const canUseFree = loyalty.freeNow && coffeeLines.length > 0
+  // подарок отмечаем сами: иначе гость, не заметивший галочку, оплатит кофе, а круг на карте обнулится.
+  // Снять галочку можно, повторно сами не ставим
+  const autoFreeRef = useRef(false)
+  useEffect(() => {
+    if (canUseFree && !autoFreeRef.current) {
+      autoFreeRef.current = true
+      setUseFree(true)
+    }
+  }, [canUseFree])
+  // изменился заказ: это уже другая попытка, сервер не должен вернуть старый заказ по прежнему ключу
+  useEffect(() => {
+    keyRef.current = newClientKey()
+  }, [cart.lines, slot, useFree, comment])
   // бесплатный кофе: самый дешёвый кофейный напиток в корзине
   const discount = useFree && canUseFree ? Math.min(...coffeeLines.map((l) => l.variant.price)) : 0
   const total = cartTotal(cart) - discount
@@ -67,8 +93,10 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
       dispatch({ type: 'clear' })
       haptic('success')
       onDone(saved)
-    } catch {
-      showAlert('Заказ не отправился. Проверьте интернет и нажмите «Заказать» ещё раз: второй заказ не появится.')
+    } catch (e) {
+      showAlert(orderErrorText(e))
+      // время ушло или кофейня закрылась: пересчитываем слоты сразу, не дожидаясь таймера
+      if (e instanceof ApiError && (e.code === 'pickup time passed' || e.code === 'shop closed')) setNow(new Date())
     } finally {
       busyRef.current = false
       setBusy(false)
@@ -112,7 +140,7 @@ export function CartScreen({ menu, onDone, onBack }: { menu: Menu; onDone: (o: O
             <div className="qty">
               <button className="qty__btn" aria-label={`Убрать одну: ${l.item.title}`} onClick={() => dispatch({ type: 'dec', key: l.key })}><Icon name="minus" size={18} /></button>
               <span className="qty__n" aria-live="polite">{l.qty}</span>
-              <button className="qty__btn" aria-label={`Добавить ещё: ${l.item.title}`} onClick={() => dispatch({ type: 'inc', key: l.key })}><Icon name="plus" size={18} /></button>
+              <button className="qty__btn" aria-label={`Добавить ещё: ${l.item.title}`} disabled={l.qty >= MAX_QTY} onClick={() => dispatch({ type: 'inc', key: l.key })}><Icon name="plus" size={18} /></button>
             </div>
             <div className="line__price">{rub(linePrice(l))}</div>
           </div>

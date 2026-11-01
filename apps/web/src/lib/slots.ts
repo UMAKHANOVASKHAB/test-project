@@ -1,37 +1,29 @@
-/**
- * Слоты самовывоза на сегодня: от «сейчас + leadMin» до закрытия, с шагом stepMin.
- * Возвращает строки "HH:MM". Пустой массив, если кофейня уже закрыта или ещё не открылась
- * так, что до закрытия не остаётся ни одного слота.
- */
-export function pickupSlots(
-  now: Date,
-  open: string,
-  close: string,
-  stepMin = 15,
-  leadMin = 10,
-): string[] {
-  const [oh, om] = open.split(':').map(Number)
-  const [ch, cm] = close.split(':').map(Number)
-
-  const opensAt = new Date(now)
-  opensAt.setHours(oh, om, 0, 0)
-  const closesAt = new Date(now)
-  closesAt.setHours(ch, cm, 0, 0)
-
-  // Ближайшее время с учётом подготовки, округлённое вверх до шага
-  const earliest = new Date(now.getTime() + leadMin * 60_000)
-  const ms = stepMin * 60_000
-  const rounded = new Date(Math.ceil(earliest.getTime() / ms) * ms)
-
-  let cursor = rounded < opensAt ? opensAt : rounded
-  const out: string[] = []
-  while (cursor <= closesAt) {
-    out.push(hhmm(cursor))
-    cursor = new Date(cursor.getTime() + ms)
-  }
-  return out
+/** Сколько минут прошло с полуночи в часовом поясе кофейни (с долями минуты). Без пояса берём часы телефона. */
+export function minutesOfDay(now: Date, timeZone?: string): number {
+  if (!timeZone) return now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(now)
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0)
+  return (get('hour') % 24) * 60 + get('minute') + get('second') / 60
 }
 
-function hhmm(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+const toMin = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+
+const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
+
+/**
+ * Слоты самовывоза на сегодня: от «сейчас + leadMin» до закрытия, с шагом stepMin.
+ * Время считается по часовому поясу кофейни: у гостя с телефоном на другом времени слоты те же.
+ * Возвращает строки "HH:MM". Пустой массив, если до закрытия не остаётся ни одного слота.
+ */
+export function pickupSlots(now: Date, open: string, close: string, stepMin = 15, leadMin = 10, timeZone?: string): string[] {
+  const opensAt = toMin(open)
+  const closesAt = toMin(close)
+  // ближайшее время с учётом подготовки, округлённое вверх до шага
+  const earliest = Math.ceil((minutesOfDay(now, timeZone) + leadMin) / stepMin) * stepMin
+  const out: string[] = []
+  for (let t = Math.max(earliest, opensAt); t <= closesAt; t += stepMin) out.push(hhmm(t))
+  return out
 }

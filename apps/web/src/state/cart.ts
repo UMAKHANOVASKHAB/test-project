@@ -21,6 +21,9 @@ export type CartAction =
 
 export const emptyCart: CartState = { lines: [] }
 
+/** Больше в одной строке сервер не примет */
+export const MAX_QTY = 20
+
 export function lineKey(item: MenuItem, variant: Variant, addons: Addon[]): string {
   const a = addons.map((x) => x.id).sort().join('+')
   return `${item.id}|${variant.label}|${a}`
@@ -46,12 +49,12 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       const key = lineKey(action.item, action.variant, addons)
       const existing = state.lines.find((l) => l.key === key)
       if (existing) {
-        return { lines: state.lines.map((l) => (l.key === key ? { ...l, qty: l.qty + 1 } : l)) }
+        return { lines: state.lines.map((l) => (l.key === key ? { ...l, qty: Math.min(l.qty + 1, MAX_QTY) } : l)) }
       }
       return { lines: [...state.lines, { key, item: action.item, variant: action.variant, addons, qty: 1 }] }
     }
     case 'inc':
-      return { lines: state.lines.map((l) => (l.key === action.key ? { ...l, qty: l.qty + 1 } : l)) }
+      return { lines: state.lines.map((l) => (l.key === action.key ? { ...l, qty: Math.min(l.qty + 1, MAX_QTY) } : l)) }
     case 'dec':
       return {
         lines: state.lines

@@ -39,6 +39,8 @@ export interface Shop {
   loyalty: { stampsForFree: number; countsCategories: string[] }
   hours: { open: string; close: string }
   pickupStepMin: number
+  /** часовой пояс кофейни, по нему считаются слоты самовывоза */
+  timezone?: string
 }
 
 export interface Menu {

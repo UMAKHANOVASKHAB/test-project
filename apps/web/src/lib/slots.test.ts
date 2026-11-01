@@ -29,3 +29,15 @@ describe('pickupSlots', () => {
     expect(pickupSlots(at(23, 10), '08:00', '23:00')).toEqual([])
   })
 })
+
+describe('pickupSlots по времени кофейни', () => {
+  it('телефон на другом поясе получает слоты по Москве', () => {
+    // 09:03 UTC это 12:03 в Москве, у гостя на телефоне может быть что угодно
+    const s = pickupSlots(new Date('2026-11-01T09:03:00Z'), '08:00', '23:00', 15, 10, 'Europe/Moscow')
+    expect(s[0]).toBe('12:15')
+    expect(s.at(-1)).toBe('23:00')
+  })
+  it('поздно вечером по Москве слотов нет, даже если на телефоне день', () => {
+    expect(pickupSlots(new Date('2026-11-01T20:30:00Z'), '08:00', '23:00', 15, 10, 'Europe/Moscow')).toEqual([])
+  })
+})

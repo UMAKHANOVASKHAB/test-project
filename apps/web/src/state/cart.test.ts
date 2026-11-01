@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cartCount, cartReducer, cartTotal, emptyCart, lineKey } from './cart'
+import { cartCount, cartReducer, cartTotal, emptyCart, lineKey, MAX_QTY } from './cart'
 import type { Addon, MenuItem } from '../types/menu'
 
 const cappuccino: MenuItem = {
@@ -44,5 +44,14 @@ describe('cartReducer', () => {
     const key = lineKey(cappuccino, cappuccino.variants[0], [])
     s = cartReducer(s, { type: 'dec', key })
     expect(s.lines).toHaveLength(0)
+  })
+
+  it('не даёт набрать больше, чем примет сервер', () => {
+    let s = cartReducer(emptyCart, { type: 'add', item: cappuccino, variant: cappuccino.variants[0] })
+    const key = s.lines[0].key
+    for (let i = 0; i < 30; i++) s = cartReducer(s, { type: 'inc', key })
+    expect(s.lines[0].qty).toBe(MAX_QTY)
+    s = cartReducer(s, { type: 'add', item: cappuccino, variant: cappuccino.variants[0] })
+    expect(s.lines[0].qty).toBe(MAX_QTY)
   })
 })
