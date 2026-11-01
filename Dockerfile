@@ -1,13 +1,16 @@
 # Один контейнер: собирает мини-апп и сервер, сервер отдаёт и API, и статику
 FROM node:22-slim AS build
 WORKDIR /app
-COPY package.json ./
+# lock-файл обязателен: каждый деплой ставит ровно те версии, что проверены тестами
+COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
-RUN npm install --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 COPY . .
 ENV VITE_API_URL=
 RUN npm run build -w apps/web && npm run build -w apps/api
+# инструменты сборки и тестов серверу не нужны: убираем их из образа
+RUN npm prune --omit=dev --no-audit --no-fund
 
 FROM node:22-slim
 WORKDIR /app

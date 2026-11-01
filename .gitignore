@@ -6,4 +6,5 @@ dist/
 graphify-out/
 *.log
 .DS_Store
-data/
+/data/
+apps/api/data/
