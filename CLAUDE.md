@@ -17,6 +17,15 @@
 Навык `.claude/skills/impeccable/`: дизайн и проверка вёрстки. Команды через `/impeccable`: `init` (один раз, создаёт PRODUCT.md), `audit`, `critique`, `polish`, `adapt`, `harden` и другие. Для сдачи сайта: init → audit → polish.
 Скрипт `scripts/impeccable` при первом запуске скачивает программу-проверялку с GitHub (сверяет sha256) в `~/.impeccable/`. Отключить статистику: `IMPECCABLE_NO_TELEMETRY=1`. Хуки плагина не ставились.
 
+### Документы в Markdown: anydoc (firecrawl, MIT)
+Навык `.claude/skills/convert-documents-to-markdown/`: превращает Word, Excel, PowerPoint, PDF, RTF, EPUB, CSV в Markdown, чтобы прочитать содержимое. Команда: `npx -y @firecrawl/anydoc <файл> -o out.md` (нужен Node 20+). Сканы без текста не распознаёт (код выхода 3). Ключ `--ocr hosted` отправляет файл на сервер Firecrawl: с договорами и личными документами не использовать без согласия пользователя.
+
+### Claude Code Setup (Anthropic, Apache 2.0)
+Навык `.claude/skills/claude-automation-recommender/` из официального плагина `claude-code-setup`. Только читает проект и советует 1–2 лучших варианта по каждому виду: хуки, агенты, навыки, плагины, MCP. Сам ничего не меняет. Запуск: попросить «посоветуй, что настроить в Claude Code для этого проекта».
+
+### Claude-Mem (память между сессиями): не ставился
+В облачной сессии контейнер одноразовый, база `~/.claude-mem/` пропадает, а фоновый процесс и хуки тратят лимит. Память проекта здесь: этот файл и `docs/`. На своём компьютере ставится так: `/plugin marketplace add thedotmack/claude-mem`, потом `/plugin install claude-mem`.
+
 ### Graphify
 Навык `/graphify` в `.claude/skills/graphify/`. Строит граф знаний по коду, чтобы не перечитывать файлы.
 Требует пакет: `pip install graphifyy`. Когда в проекте появится код, запусти `/graphify .`, потом задавай вопросы по коду через `graphify query "<вопрос>"`. После изменений: `graphify update .`.
