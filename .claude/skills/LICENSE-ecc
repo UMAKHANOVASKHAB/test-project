@@ -1,6 +1,7 @@
 Файлы из ECC (https://github.com/affaan-m/ECC, коммит b38be6a, версия 2.2.3):
 agents/typescript-reviewer.md, agents/react-reviewer.md, agents/silent-failure-hunter.md,
 skills/verification-loop/, skills/make-interfaces-feel-better/
+Файлы переведены на русский (04.11.2026); имена, команды и код оставлены как в оригинале.
 
 MIT License
 

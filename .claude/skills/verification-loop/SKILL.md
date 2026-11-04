@@ -1,52 +1,52 @@
 ---
 name: verification-loop
-description: Run a six-phase verification of a Claude Code session's work — build, type check, lint, tests with coverage, security grep, and diff review — then produce a PASS/FAIL verification report. Use when verifying work after completing a feature or refactor, before creating a PR, or when quality gates must pass.
+description: Проверка работы в сессии Claude Code в шесть этапов (сборка, проверка типов, линтер, тесты с покрытием, поиск секретов, разбор diff) с итоговым отчётом PASS/FAIL. Использовать после завершения функции или рефакторинга, перед созданием PR и когда нужно пройти проверки качества.
 license: MIT
 metadata:
   origin: ECC
 ---
 
-# Verification Loop Skill
+# Навык «Цикл проверки»
 
-A comprehensive verification system for Claude Code sessions.
+Полная система проверки для сессий Claude Code.
 
-## When to Use
+## Когда использовать
 
-Invoke this skill:
-- After completing a feature or significant code change
-- Before creating a PR
-- When you want to ensure quality gates pass
-- After refactoring
+Вызывай этот навык:
+- после завершения функции или заметного изменения кода;
+- перед созданием PR;
+- когда нужно убедиться, что проверки качества пройдены;
+- после рефакторинга.
 
-## Verification Phases
+## Этапы проверки
 
-### Phase 1: Build Verification
+### Этап 1: сборка
 ```bash
-set -o pipefail  # report the build's exit status, not tail's
-# Check if project builds
+set -o pipefail  # показывать код выхода сборки, а не tail
+# Проверить, что проект собирается
 npm run build 2>&1 | tail -20
-# OR
+# ИЛИ
 pnpm build 2>&1 | tail -20
 ```
 
-If build fails, STOP and fix before continuing.
+Если сборка упала, ОСТАНОВИСЬ и исправь, прежде чем продолжать.
 
-### Phase 2: Type Check
+### Этап 2: проверка типов
 ```bash
 set -o pipefail
-# TypeScript projects
+# Проекты на TypeScript
 npx --no-install tsc --noEmit 2>&1 | sed -n '1,30p'
 
-# Python projects
+# Проекты на Python
 pyright . 2>&1 | sed -n '1,30p'
 ```
 
-Report all type errors. Fix critical ones before continuing.
+Сообщи обо всех ошибках типов. Критичные исправь, прежде чем продолжать.
 
-### Phase 3: Lint Check
+### Этап 3: линтер
 
-Use `sed` to limit displayed output while consuming the whole stream. This keeps a
-successful linter from failing on SIGPIPE when `pipefail` is enabled.
+Используй `sed`, чтобы ограничить показ вывода, но прочитать весь поток. Так успешный
+линтер не упадёт из-за SIGPIPE при включённом `pipefail`.
 ```bash
 set -o pipefail
 # JavaScript/TypeScript
@@ -56,95 +56,96 @@ npm run lint 2>&1 | sed -n '1,30p'
 ruff check . 2>&1 | sed -n '1,30p'
 ```
 
-### Phase 4: Test Suite
+### Этап 4: тесты
 ```bash
 set -o pipefail
-# Run tests with coverage
+# Запустить тесты с покрытием
 npm run test -- --coverage 2>&1 | tail -50
 
-# Check coverage threshold
-# Target: 80% minimum
+# Проверить порог покрытия
+# Цель: не меньше 80%
 ```
 
-Report:
-- Total tests: X
-- Passed: X
-- Failed: X
-- Coverage: X%
+Сообщи:
+- Всего тестов: X
+- Прошло: X
+- Упало: X
+- Покрытие: X%
 
-### Phase 5: Security Scan
+### Этап 5: проверка безопасности
 ```bash
-# Check for secrets
+# Поиск секретов
 grep -rn "sk-" --include="*.ts" --include="*.js" . 2>/dev/null | head -10
 grep -rn "api_key" --include="*.ts" --include="*.js" . 2>/dev/null | head -10
 
-# Check for console.log
+# Поиск console.log
 grep -rn "console.log" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | head -10
 ```
 
-### Phase 6: Diff Review
+### Этап 6: разбор diff
 ```bash
-# Show what changed
+# Показать, что изменилось
 git diff --stat
 git diff HEAD~1 --name-only
 ```
 
-Review each changed file for:
-- Unintended changes
-- Missing error handling
-- Potential edge cases
+Проверь каждый изменённый файл на:
+- непреднамеренные изменения;
+- отсутствие обработки ошибок;
+- возможные пограничные случаи.
 
-## Target Acceptance
+## Приёмка в целевой среде
 
-When the requested outcome requires deployment or target-environment verification,
-report target acceptance separately from local checks. Record the environment and
-installed version when known, the evidence, and the next permitted check or precise
-access dependency. Passing local checks, review, merge, or release does not establish
-target acceptance. Report VERIFIED or FAILED for an executed target check, with its evidence.
-Do not access production or make external changes without authorization. For
-local-only tasks, mark target acceptance as not applicable.
+Если результат требует деплоя или проверки в целевой среде, сообщай о приёмке
+в целевой среде отдельно от локальных проверок. Записывай среду и установленную
+версию, если они известны, доказательства и следующий разрешённый шаг проверки или
+точное требование к доступу. Пройденные локальные проверки, ревью, слияние или релиз
+не означают приёмку в целевой среде. Для выполненной проверки в целевой среде пиши
+VERIFIED или FAILED с доказательствами. Не обращайся к продакшену и не вноси внешние
+изменения без разрешения. Для чисто локальных задач отмечай приёмку как неприменимую.
 
-For example: local checks PASS; staging verification NOT PERFORMED (no access);
-next step: an authorized maintainer runs the staging smoke test.
+Например: локальные проверки PASS; проверка на staging NOT PERFORMED (нет доступа);
+следующий шаг: уполномоченный сопровождающий запускает smoke-тест на staging.
 
-## Output Format
+## Формат отчёта
 
-After running all phases, produce a verification report:
+После всех этапов выдай отчёт о проверке:
 
 ```
-VERIFICATION REPORT
-==================
+ОТЧЁТ О ПРОВЕРКЕ
+================
 
-Build:     [PASS/FAIL]
-Types:     [PASS/FAIL] (X errors)
-Lint:      [PASS/FAIL] (X warnings)
-Tests:     [PASS/FAIL] (X/Y passed, Z% coverage)
-Security:  [PASS/FAIL] (X issues)
-Diff:      [X files changed]
+Сборка:       [PASS/FAIL]
+Типы:         [PASS/FAIL] (X ошибок)
+Линтер:       [PASS/FAIL] (X предупреждений)
+Тесты:        [PASS/FAIL] (X/Y прошло, покрытие Z%)
+Безопасность: [PASS/FAIL] (X проблем)
+Diff:         [изменено X файлов]
 
-Overall:   [READY/NOT READY] for PR
-Target:    [VERIFIED/FAILED/NOT PERFORMED/NOT APPLICABLE] (environment/version, evidence)
-Next permitted step: [check or access dependency; none if complete/not applicable]
+Итог:         [READY/NOT READY] для PR
+Цель:         [VERIFIED/FAILED/NOT PERFORMED/NOT APPLICABLE] (среда/версия, доказательства)
+Следующий разрешённый шаг: [проверка или требование к доступу; «нет», если всё готово или неприменимо]
 
-Issues to Fix:
+Что исправить:
 1. ...
 2. ...
 ```
 
-## Continuous Mode
+## Непрерывный режим
 
-For long sessions, run verification every 15 minutes or after major changes:
+В длинных сессиях запускай проверку каждые 15 минут или после крупных изменений:
 
 ```markdown
-Set a mental checkpoint:
-- After completing each function
-- After finishing a component
-- Before moving to next task
+Ставь контрольные точки:
+- после завершения каждой функции
+- после завершения компонента
+- перед переходом к следующей задаче
 
-Run: /verify
+Запуск: /verify
 ```
 
-## Integration with Hooks
+## Связь с хуками
 
-This skill complements PostToolUse hooks but provides deeper verification.
-Hooks catch issues immediately; this skill provides comprehensive review.
+Этот навык дополняет хуки PostToolUse, но проверяет глубже.
+Хуки ловят проблемы сразу; этот навык даёт полную проверку.
+(В этом проекте хуки ECC не ставились.)

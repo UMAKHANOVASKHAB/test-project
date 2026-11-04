@@ -1,63 +1,60 @@
 ---
 name: make-interfaces-feel-better
-description: Apply concrete design-engineering details that make interfaces feel polished. Use when reviewing or improving UI spacing, typography, borders, shadows, motion, hit areas, icons, text wrapping, and interaction states.
+description: Конкретные детали дизайн-инженерии, которые делают интерфейс отполированным. Использовать при проверке или улучшении отступов, типографики, рамок, теней, анимации, зон нажатия, иконок, переноса текста и состояний взаимодействия.
 metadata:
   origin: community
 ---
 
-# Make Interfaces Feel Better
+# Сделать интерфейс приятнее
 
-Use this skill for the small design-engineering details that compound into a
-more polished interface.
+Используй этот навык для мелких деталей дизайн-инженерии, которые вместе делают
+интерфейс заметно аккуратнее.
 
-Source: salvaged from stale community PR #1659 by `linus707`.
+Источник: спасён из заброшенного PR сообщества #1659 от `linus707`.
 
-## When to Use
+## Когда использовать
 
-- The user says the UI feels off, flat, generic, cramped, jumpy, or unfinished.
-- You are building controls, cards, lists, dashboards, navigation, forms, or
-  toolbars.
-- A component needs hover, active, focus, enter, exit, loading, or empty states.
-- A frontend review needs specific before/after recommendations.
+- Пользователь говорит, что интерфейс «не такой», плоский, шаблонный, тесный, дёргается или выглядит незаконченным.
+- Ты делаешь элементы управления, карточки, списки, дашборды, навигацию, формы или панели инструментов.
+- Компоненту нужны состояния наведения, нажатия, фокуса, появления, исчезновения, загрузки или пустое состояние.
+- В ревью фронтенда нужны конкретные рекомендации «было / стало».
 
-## Core Principles
+## Основные принципы
 
-### Concentric Radius
+### Согласованные радиусы
 
-For nearby nested rounded surfaces:
+Для вложенных скруглённых поверхностей рядом друг с другом:
 
 ```text
-outer radius = inner radius + padding
+внешний радиус = внутренний радиус + отступ
 ```
 
-If padding is large, treat layers as separate surfaces instead of forcing the
-math. The point is optical coherence, not formula worship.
+Если отступ большой, считай слои отдельными поверхностями, а не подгоняй формулу.
+Цель в оптической цельности, а не в поклонении формуле.
 
-### Optical Alignment
+### Оптическое выравнивание
 
-Geometric centering is not always visual centering. Icon buttons, play
-triangles, arrows, stars, and asymmetric icons often need a small offset. Fix the
-SVG when possible; otherwise adjust with a pixel-level margin or padding change.
+Геометрический центр не всегда выглядит центром. Кнопкам с иконками, треугольникам
+«play», стрелкам, звёздам и несимметричным иконкам часто нужен небольшой сдвиг.
+Лучше исправить сам SVG; если нельзя, подвинь на пиксель через margin или padding.
 
-### Shadows And Borders
+### Тени и рамки
 
-Use borders for separation and focus rings. Use layered shadows when a card,
-button, dropdown, or popover needs depth. Shadows should be transparent and
-subtle enough to work across backgrounds.
+Рамки используй для разделения и колец фокуса. Многослойные тени используй, когда
+карточке, кнопке, выпадающему списку или всплывающему окну нужна глубина. Тени
+должны быть прозрачными и достаточно мягкими, чтобы смотреться на любом фоне.
 
-### Text Wrapping
+### Перенос текста
 
-- Use `text-wrap: balance` on headings and short titles.
-- Use `text-wrap: pretty` on short-to-medium body text, captions, descriptions,
-  and list items.
-- Avoid both on long prose, code, and preformatted content.
-- Use `font-variant-numeric: tabular-nums` for counters, timers, prices, tables,
-  and other updating numbers.
+- `text-wrap: balance` для заголовков и коротких названий.
+- `text-wrap: pretty` для короткого и среднего текста, подписей, описаний и пунктов списков.
+- Не используй ни то, ни другое для длинного текста, кода и предформатированного содержимого.
+- `font-variant-numeric: tabular-nums` для счётчиков, таймеров, цен, таблиц и
+  других меняющихся чисел.
 
-### Font Smoothing
+### Сглаживание шрифта
 
-On macOS, apply antialiased font smoothing at the root layout when the project
-does not already do so:
+На macOS включи сглаживание antialiased в корне макета, если в проекте его ещё нет:
 
 ```css
 html {
@@ -66,10 +63,9 @@ html {
 }
 ```
 
-### Image Outlines
+### Обводка картинок
 
-Images often need a subtle inset outline so their edges do not blur into the
-surface.
+Картинкам часто нужна тонкая внутренняя обводка, чтобы их края не сливались с фоном.
 
 ```css
 img {
@@ -84,27 +80,25 @@ img {
 }
 ```
 
-Use neutral black or white alpha outlines. Do not tint image outlines with the
-brand palette.
+Используй нейтральную чёрную или белую обводку с прозрачностью. Не окрашивай
+обводку картинок в цвета бренда.
 
-### Motion
+### Анимация
 
-Use CSS transitions for interactive state changes because they can retarget
-when the user changes intent mid-motion. Reserve keyframes for staged
-one-shot entrances or loading sequences.
+Для смены состояний при взаимодействии используй CSS transitions: они могут
+развернуться, если пользователь передумал посреди движения. Keyframes оставь для
+поэтапных разовых появлений и анимаций загрузки.
 
-Good motion defaults:
+Хорошие значения по умолчанию:
 
-- Enter: combine opacity, small `translateY`, and optionally blur.
-- Exit: shorter and quieter than enter, usually 150ms.
-- Press: `scale(0.96)` for tactile buttons, with a way to disable it when the
-  movement distracts.
-- Icon swaps: cross-fade with opacity, scale, and blur instead of instant
-  visibility toggles.
+- Появление: прозрачность, небольшой `translateY` и по желанию размытие.
+- Исчезновение: короче и тише, чем появление, обычно 150 мс.
+- Нажатие: `scale(0.96)` для «осязаемых» кнопок, с возможностью отключить, если движение отвлекает.
+- Смена иконок: плавный переход через прозрачность, масштаб и размытие вместо мгновенного переключения видимости.
 
-### Transition Scope
+### Область transition
 
-Never use `transition: all`. Specify the changed properties:
+Никогда не используй `transition: all`. Указывай свойства, которые меняются:
 
 ```css
 .button {
@@ -114,39 +108,38 @@ Never use `transition: all`. Specify the changed properties:
 }
 ```
 
-Use `will-change` only for first-frame stutter on compositor-friendly
-properties such as `transform`, `opacity`, and `filter`. Never use
-`will-change: all`.
+`will-change` используй только против рывка на первом кадре и только для свойств,
+которые обрабатывает компоновщик: `transform`, `opacity`, `filter`. Никогда не
+используй `will-change: all`.
 
-### Hit Areas
+### Зоны нажатия
 
-Interactive controls should have at least a 40x40px hit area, ideally 44x44px
-where the layout allows it. Expand with a pseudo-element when the visible icon
-is smaller, but do not let expanded hit areas overlap.
+У интерактивных элементов зона нажатия должна быть не меньше 40×40 px, а лучше
+44×44 px, если макет позволяет. Если видимая иконка меньше, расширяй зону через
+псевдоэлемент, но так, чтобы расширенные зоны не перекрывались.
 
-## Review Output
+## Формат отчёта
 
-When reviewing a UI polish pass, report concrete changes in before/after rows:
+При проверке полировки интерфейса сообщай о конкретных изменениях строками «было / стало»:
 
-| Principle | Before | After |
+| Принцип | Было | Стало |
 | --- | --- | --- |
-| Concentric radius | Same radius on parent and child | Parent radius accounts for padding |
-| Tabular numbers | Counter shifts as digits change | Counter uses `tabular-nums` |
-| Transition scope | `transition: all` | Explicit transition properties |
+| Согласованные радиусы | Одинаковый радиус у родителя и потомка | Радиус родителя учитывает отступ |
+| Табличные цифры | Счётчик прыгает при смене цифр | Счётчик использует `tabular-nums` |
+| Область transition | `transition: all` | Явно перечислены свойства |
 
-Include file paths and properties when they are not obvious from the snippets.
-Omit principles that you checked but did not change.
+Указывай пути к файлам и свойства, если они не очевидны из фрагментов.
+Не перечисляй принципы, которые проверил, но не менял.
 
-## Checklist
+## Чек-лист
 
-- Nested rounded elements are optically coherent.
-- Icons are visually centered.
-- Buttons, cards, and popovers use borders or shadows for the right reason.
-- Headings and short text avoid awkward wrapping.
-- Dynamic numbers use tabular numerals.
-- Images have neutral outlines where needed.
-- Enter and exit animations are split, subtle, and interruptible where
-  appropriate.
-- Buttons have tactile active states without exaggerated motion.
-- `transition: all` and `will-change: all` are absent.
-- Small controls still have usable hit areas.
+- Вложенные скруглённые элементы выглядят цельно.
+- Иконки визуально по центру.
+- Кнопки, карточки и всплывающие окна используют рамки или тени по делу.
+- Заголовки и короткий текст переносятся без неудачных разрывов.
+- Меняющиеся числа используют табличные цифры.
+- У картинок есть нейтральная обводка, где она нужна.
+- Анимации появления и исчезновения разделены, мягкие и прерываемые, где это уместно.
+- У кнопок есть ощутимое состояние нажатия без преувеличенного движения.
+- Нет `transition: all` и `will-change: all`.
+- У маленьких элементов управления удобные зоны нажатия.
