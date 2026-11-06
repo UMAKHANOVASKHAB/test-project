@@ -32,6 +32,10 @@
 - Маркетинг (coreyhaines31/marketingskills, MIT): 24 из 52 навыков (`copywriting`, `seo-audit`, `pricing`, `offers`, `social` и др.). Контекст продукта хранится в `.agents/product-marketing.md`. Обманные приёмы давления (ложная срочность, скрытые условия) не использовать.
 - `last30days` (mvanhorn, MIT): что обсуждали за 30 дней в Reddit, X, YouTube и др. Без ключей работает частично; на чтение cookies браузера согласия не давать без спроса пользователя.
 
+### YouTube Agent (Jake Schincariol, MIT, v1.0.0, конспект: `docs/youtube-agent-konspekt.md`)
+11 скиллов для YouTube-канала в `.claude/skills/yt-*`: `/yt-script`, `/yt-package`, `/yt-edit`, `/yt-comment`, `/yt-plan`, `/yt-viral`, `/yt-retention`, `/yt-shorts`, `/yt-seo`, `/yt-chapters`, `/yt-audit`. Ничего не публикуют, только пишут тексты.
+Профиль голоса: `.claude/youtube/voice.md` (шаблон `voice.template.md` рядом). Оценщики хуков и паразитов настроены на английский, для русского оценки ориентировочные.
+
 ## Текущий проект: мини-апп 9 bar coffee (запущен)
 Перед любой работой прочитай `docs/runbook.md`: там где что лежит, переменные Railway и что делать при сбоях.
 - Бот @ninebar_coffee_05bot, сервер Railway (сервис ninebar-coffee), адрес https://ninebar-coffee-production-4d6a.up.railway.app
